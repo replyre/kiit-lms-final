@@ -139,14 +139,48 @@ const VideoEditor = ({
   };
 
   const trimVideo = async () => {
-    if (!ffmpeg.loaded) {
-      await ffmpeg.load();
-    }
-    setProcessing(true);
-    setProgress(0);
+  if (!ffmpeg.loaded) {
+    await ffmpeg.load();
+  }
+  setProcessing(true);
+  setProgress(0);
 
+  try {
     const inputFile = "input.mp4";
-    await ffmpeg.writeFile(inputFile, await fetchFile(videoUrl));
+    
+    // Better way to handle video data - convert to blob first
+    let videoData;
+    
+    if (videoUrl.startsWith('blob:')) {
+      // If it's a blob URL, fetch it directly
+      const response = await fetch(videoUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch blob: ${response.statusText}`);
+      }
+      videoData = await response.arrayBuffer();
+    } else {
+      // For regular URLs, try fetchFile with error handling
+      try {
+        videoData = await fetchFile(videoUrl);
+      } catch (fetchError) {
+        console.error('fetchFile failed, trying alternative method:', fetchError);
+        
+        // Fallback: try direct fetch
+        const response = await fetch(videoUrl, {
+          mode: 'cors',
+          credentials: 'same-origin'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch video: ${response.statusText}`);
+        }
+        
+        videoData = await response.arrayBuffer();
+      }
+    }
+
+    // Write the video data to FFmpeg
+    await ffmpeg.writeFile(inputFile, new Uint8Array(videoData));
 
     const video = videoRef.current;
     const duration = video.duration;
@@ -175,6 +209,7 @@ const VideoEditor = ({
     for (let i = 0; i < segments.length; i++) {
       const [segStart, segEnd] = segments[i];
       const outputSegment = `segment_${i}.mp4`;
+      
       await ffmpeg.exec([
         "-i",
         inputFile,
@@ -186,6 +221,7 @@ const VideoEditor = ({
         "copy",
         outputSegment,
       ]);
+      
       segmentFiles.push(outputSegment);
       setProgress(Math.round(((i + 1) / segments.length) * 70)); // 70% for segments
     }
@@ -221,7 +257,14 @@ const VideoEditor = ({
     setOutputURL(url);
     setProgress(100);
     setProcessing(false);
-  };
+    
+  } catch (error) {
+    console.error("Error processing video:", error);
+    alert(`Failed to process video: ${error.message}`);
+    setProcessing(false);
+    setProgress(0);
+  }
+};
 
   const resetEditor = () => {
     setRemoveRanges([]);

@@ -3,8 +3,8 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#1aa100",
-        secondary: "#000000",
+        primary: "#0F62FE",
+        secondary: "#A6C8FF",
         tertiary: "#848484",
       },
       inset:{
