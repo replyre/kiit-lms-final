@@ -120,7 +120,7 @@ const DiscussionForum = () => {
         title: newDiscussionTitle,
         content: newDiscussionContent,
       };
-
+let response;
       if (activeTab === "teacher") {
         response = await DiscussionService.createTeacherDiscussion(
           discussionData,
@@ -128,6 +128,7 @@ const DiscussionForum = () => {
         );
       } else {
         const targetCourseId = courseID || selectedCourseId;
+        console.log(targetCourseId);
         if (!targetCourseId) {
           setError("Please select a course");
           setLoading(false);
@@ -879,7 +880,7 @@ const DiscussionForum = () => {
         <h5 className="text-lg font-medium mb-4">Create New Discussion</h5>
 
         <form onSubmit={handleCreateDiscussion}>
-          <div className="mb-4">
+        { activeTab==="teacher" && <div className="mb-4">
             <label className="block text-sm font-medium mb-1">
               Discussion Type
             </label>
@@ -909,7 +910,7 @@ const DiscussionForum = () => {
                 <label htmlFor="type-course">Course Discussion</label>
               </div>
             </div>
-          </div>
+          </div>}
 
           {activeTab === "course" && !courseID && (
             <div className="mb-4">
