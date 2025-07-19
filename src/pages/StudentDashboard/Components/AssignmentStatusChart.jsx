@@ -70,15 +70,16 @@ const AssignmentStatusChart = ({
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip 
+              {/* <Tooltip 
                 formatter={(value, name) => [value, name]}
                 contentStyle={{
                   backgroundColor: 'white',
                   border: '1px solid #e5e7eb',
                   borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  zIndex:'10000'
                 }}
-              />
+              /> */}
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -122,7 +123,7 @@ const AssignmentStatusChart = ({
       </div>
 
       <button
-        className="w-full mt-4 py-2 text-sm font-medium text-primary hover:text-primary-dark flex items-center justify-center border border-primary/30 rounded-lg hover:bg-primary/5 transition-colors"
+        className="w-full mt-4 py-2 text-sm font-medium text-accent1 hover:text-accent1 flex items-center justify-center border border-primary/30 rounded-lg hover:bg-accent2/10 transition-colors"
         onClick={() => setActiveSection("Assignment")}
       >
         View Assignments <ArrowRight className="ml-2 h-4 w-4" />

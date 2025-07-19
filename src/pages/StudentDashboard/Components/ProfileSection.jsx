@@ -50,12 +50,12 @@ const StudentProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-accent1/10 to-accent/20 py-8">
       <div className="max-w-6xl mx-auto px-4 space-y-6">
         <div className="flex justify-between items-center mb-4">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-green-600 hover:text-green-700 border-2 rounded-lg border-green-400 p-2 hover:border-green-700"
+            className="flex items-center gap-2 text-accent1/80 hover:text-accent1 border-2 rounded-lg border-accent1/90 p-2 hover:"
           >
             <ArrowLeft className="h-5 w-5" />
             <span>Back</span>
@@ -65,8 +65,8 @@ const StudentProfilePage = () => {
             onClick={editMode ? handleSave : handleEditToggle}
             className={`px-4 py-2 rounded-lg font-semibold text-sm ${
               editMode
-                ? "bg-green-700 text-white hover:bg-green-800"
-                : "bg-white border border-green-600 text-green-600 hover:bg-green-50"
+                ? "bg-accent1/80 text-white hover:bg-accent1"
+                : "bg-accent1/20 border border-accent1 text-accent1/80 hover:bg-accent1/10"
             }`}
           >
             {editMode ? "Save Changes" : "Edit"}
@@ -75,7 +75,7 @@ const StudentProfilePage = () => {
 
         {/* Profile Header */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="bg-gradient-to-r from-green-600 to-emerald-600 h-16"></div>
+          <div className="bg-gradient-to-r from-accent1/80 to-accent1 h-16"></div>
           <div className="p-6">
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="w-36 h-40 rounded-lg overflow-hidden shadow-lg">
@@ -93,7 +93,7 @@ const StudentProfilePage = () => {
                   <span className="flex items-center gap-1">
                     {studentDetails.course}
                   </span>
-                  <span className="text-green-600 font-semibold">
+                  <span className="text-accent1 font-semibold">
                     {studentDetails.year}
                   </span>
                   <span className="text-gray-500">
@@ -129,7 +129,7 @@ const StudentProfilePage = () => {
                     id={field}
                     value={studentDetails[field]}
                     onChange={handleChange}
-                    className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-600"
+                    className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-accent1"
                   />
                 ) : (
                   <span className="text-gray-700">{studentDetails[field]}</span>
@@ -160,7 +160,7 @@ const StudentProfilePage = () => {
                 key={key}
                 className={`p-4 rounded-lg ${
                   index === Object.entries(feeStructure).length - 1
-                    ? "bg-green-100 col-span-2"
+                    ? "bg-accent1/10 col-span-2"
                     : "bg-gray-50"
                 }`}
               >
@@ -170,7 +170,7 @@ const StudentProfilePage = () => {
                 <div
                   className={`font-semibold ${
                     index === Object.entries(feeStructure).length - 1
-                      ? "text-green-600 text-lg"
+                      ? "text-accent1 text-lg"
                       : "text-gray-800"
                   }`}
                 >
@@ -185,7 +185,7 @@ const StudentProfilePage = () => {
         <div className="flex justify-center">
           <button
             onClick={handleDownloadBrochure}
-            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-3 rounded-lg flex items-center gap-2 shadow-lg transition"
+            className="bg-gradient-to-r from-accent1/80 to-accent1 hover:from-accent1 hover:to-accent1 text-white px-8 py-3 rounded-lg flex items-center gap-2 shadow-lg transition"
           >
             <svg
               className="w-5 h-5"

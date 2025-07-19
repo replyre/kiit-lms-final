@@ -2,7 +2,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import './fonts.css';
 
+
+
+ html {
+  font-family: "SF Pro Display" !important;
+ }
 @keyframes slideIn {
   from {
     transform: translateX(100%);

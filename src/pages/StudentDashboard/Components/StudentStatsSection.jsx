@@ -4,8 +4,6 @@ import {
   Line,
   BarChart,
   Bar,
-  RadialBarChart,
-  RadialBar,
   PieChart,
   Pie,
   AreaChart,

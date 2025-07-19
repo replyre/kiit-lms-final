@@ -72,10 +72,10 @@ const Login = () => {
               className="h-[150px] w-[150px] object-cover"
             />
           </div>
-          <h1 className="text-[20px] lg:text-[30px]   text-center text-black   lg:my-2 font-[Poppins]">
+          <h1 className="text-[20px] lg:text-[30px]   text-center text-black lg:my-2 font-[Poppins]">
             OneCampus
           </h1>
-          <h2 className="text-2xl lg:text-3xl font-bold text-center text-black mb-6 lg:mb-8">
+          <h2 className="text-2xl lg:text-3xl   font-bold text-center text-black mb-6 lg:mb-8">
             Welcome back!
           </h2>
 
@@ -89,13 +89,13 @@ const Login = () => {
               </label>
               <div className="relative">
                 <Mail
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-accent1"
                   size={20}
                 />
                 <input
                   id="email"
                   type="email"
-                  className="pl-10 w-full p-3 border border-primary text-slate-600 outline-none rounded-lg focus:ring-2 focus:ring-green-300 focus:border-primary placeholder:text-slate-400"
+                  className="pl-10 w-full p-3 border border-accent1 text-slate-600 outline-none rounded-lg focus:ring-2 focus:ring-accent2 focus:border-primary placeholder:text-slate-400"
                   placeholder="Enter your email"
                   value={formData.email}
                   onChange={(e) =>
@@ -114,13 +114,13 @@ const Login = () => {
               </label>
               <div className="relative">
                 <Lock
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-accent1"
                   size={20}
                 />
                 <input
                   id="password"
                   type="password"
-                  className="pl-10 w-full p-3 border border-primary text-slate-600 outline-none rounded-lg focus:ring-2 focus:ring-green-300 focus:border-primary placeholder:text-slate-400"
+                  className="pl-10 w-full p-3 border border-accent1 text-slate-600 outline-none rounded-lg focus:ring-2 focus:ring-accent2 focus:border-primary placeholder:text-slate-400"
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={(e) =>
@@ -134,8 +134,8 @@ const Login = () => {
               type="submit"
               className={`w-full py-3 px-4 border border-transparent rounded-lg shadow-sm text-white transition duration-150 ${
                 loading
-                  ? "bg-gray-300 hover:cursor-not-allowed"
-                  : "bg-primary/60 hover:bg-primary/70"
+                  ? "bg-accent2 hover:cursor-not-allowed"
+                  : "bg-accent1/80 hover:bg-accent1/90"
               }`}
             >
               {!loading ? "Sign in" : "Signing in ..."}
@@ -146,7 +146,7 @@ const Login = () => {
 
       {/* Right side - Gradient Background */}
       <div className="hidden lg:block w-full lg:w-1/2 relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#6ec1e4] to-[#81c784]">
+        <div className="absolute inset-0 bg-gradient-to-br from-secondary to-primary">
           <div className="absolute inset-0 bg-black opacity-20"></div>
           <img
             src="/loginbg.jpg"

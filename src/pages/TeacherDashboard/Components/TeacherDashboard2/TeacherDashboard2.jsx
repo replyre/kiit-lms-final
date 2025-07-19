@@ -40,7 +40,7 @@ const TeacherDashboard2 = () => {
     <div className="space-y-6  px-[15vh] py-2 max-auto w-full ">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-gray-900 font-sf">
             Welcome back, Professor!
           </h1>
           <p className="text-gray-600 mt-1">

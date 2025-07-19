@@ -79,7 +79,7 @@ const SubjectMeeting = ({ meeting, onJoin }) => {
         href={meeting.link}
         target="_blank"
         rel="noopener noreferrer"
-        className="block w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-lg text-center font-medium transition-colors duration-300 mt-2"
+        className="block w-full bg-accent1 hover:bg-emerald-700 text-white py-3 px-4 rounded-lg text-center font-medium transition-colors duration-300 mt-2"
         onClick={(e) => {
           e.preventDefault();
           onJoin(meeting);
@@ -196,7 +196,7 @@ const CreateMeeting = () => {
             <button
               className={`px-4 py-2 rounded ${
                 view === "calendar"
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-accent1 text-white"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
               onClick={() => setView("calendar")}
@@ -206,7 +206,7 @@ const CreateMeeting = () => {
             <button
               className={`px-4 py-2 rounded ${
                 view === "cards"
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-accent1 text-white"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
               onClick={() => setView("cards")}
@@ -286,7 +286,7 @@ const CreateMeeting = () => {
                   No meetings scheduled for this day.
                 </p>
                 <button
-                  className="mt-4 bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-lg"
+                  className="mt-4 bg-accent1 hover:bg-emerald-700 text-white py-2 px-4 rounded-lg"
                   onClick={() => setSelectedDate(new Date())}
                 >
                   Return to Today
@@ -346,7 +346,7 @@ const CreateMeeting = () => {
 
             <div className="flex space-x-2 mt-6">
               <button
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-lg flex items-center justify-center"
+                className="flex-1 bg-accent1 hover:bg-emerald-700 text-white py-2 px-4 rounded-lg flex items-center justify-center"
                 onClick={() => window.open(selectedMeeting.link, "_blank")}
               >
                 <FaVideo className="mr-2" />

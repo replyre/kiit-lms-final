@@ -3,13 +3,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#0F62FE",
-        secondary: "#A6C8FF",
+        primary: "#000000",
+        secondary: "#FFFFFF",
         tertiary: "#848484",
+        accent1:"#0F62FE",
+        accent2:"#A6C8FF"
       },
       inset:{
         '2/5':"40%",
-      }
+      },
+      fontFamily: {
+        sf: ['"SF Pro Display"'],
+      },
     },
   },
   plugins: [],
