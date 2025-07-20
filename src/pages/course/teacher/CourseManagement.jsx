@@ -292,9 +292,9 @@ const CourseManagement = () => {
       {/* Top Header with Logo, Profile and Logout */}
       <header className="bg-white border-b border-gray-200">
         <div className=" mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-end items-center h-16">
             {/* Logo on Left */}
-            <div
+            {/* <div
               className="flex items-center"
               onClick={() => setSelectedOption("Home")}
             >
@@ -305,7 +305,7 @@ const CourseManagement = () => {
                   alt="Dhamm Nexus"
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* Profile and Logout on Right */}
             <div className="flex items-center space-x-4">
@@ -338,23 +338,26 @@ const CourseManagement = () => {
       </header>
 
       {/* Course Header Banner */}
-      <div className="relative h-64 overflow-hidden">
+       <div className="flex justify-center w-full gap-10 overflow-hidden m-4">
         <img
           src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=2340&q=80"
-          alt={courseData.name}
-          className="w-full h-full object-cover"
+          alt="red"
+          className="w-[40%] h-[30%] object-cover rounded-xl"
         />
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center">
+        <div className=" inset-0 w-[40%] flex items-center">
           <div className="container mx-auto px-6">
-            <h1 className="text-4xl font-bold text-white">
+            <h1 className="text-4xl font-bold text-gray-600 mb-10">
               {courseData.title}
             </h1>
+            <h4 className="text-lg font-bold text-gray-500 ">
+             {String(courseData.aboutCourse).substring(0,200)+ "..."}
+            </h4>
           </div>
         </div>
       </div>
 
       {/* Navigation Bar */}
-      <nav className="bg-white  shadow-sm sticky top-0 z-40">
+      <nav className="bg-transparent w-full shadow-sm absolute top-0 z-40">
         <div className="max-w-[80%] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex  items-center justify-between h-16">
             {/* Left side - Take Class Button */}
