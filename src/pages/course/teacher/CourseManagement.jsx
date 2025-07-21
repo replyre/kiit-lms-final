@@ -15,6 +15,7 @@ import {
   Activity,
   CheckCircle,
   Monitor,
+  Home,
 } from "lucide-react";
 import { VscCommentDiscussion, VscLiveShare } from "react-icons/vsc";
 import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
@@ -212,6 +213,7 @@ const CourseManagement = () => {
             {selectedOption === "Content" && (
               <ContentSection setSelectedOption={setSelectedOption} />
               // <BlogCreator />
+              
             )}
 
             {/* Add this section for Self Test */}
@@ -288,9 +290,9 @@ const CourseManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 ">
       {/* Top Header with Logo, Profile and Logout */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-transparent border-b border-gray-200 ">
         <div className=" mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-end items-center h-16">
             {/* Logo on Left */}
@@ -308,16 +310,16 @@ const CourseManagement = () => {
             </div> */}
 
             {/* Profile and Logout on Right */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 realtive z-[1000]">
               <abbr title="Discussions">
-                <button className="p-2  rounded-full hover:bg-primary/20 transition-colors  text-secondary hover hover:text-primary">
+                <button className="p-2  rounded-full hover:bg-primary/20 transition-colors  text-accent1 hover hover:text-primary">
                   <VscCommentDiscussion
                     onClick={() => setSelectedOption("Discussion")}
                   />
                 </button>
               </abbr>
               <abbr title="Announcements">
-                <button className="p-2  rounded-full  hover:bg-primary/20 transition-colors  text-secondary hover:text-primary">
+                <button className="p-2  rounded-full  hover:bg-primary/20 transition-colors  text-accent1 hover:text-primary">
                   <TfiAnnouncement
                     onClick={() => setSelectedOption("Announcements")}
                   />
@@ -371,21 +373,22 @@ const CourseManagement = () => {
 
             {/* Navigation Items */}
             <div className="flex mx-auto items-center space-x-6 ">
-              {/* Dropdown Menus */}
-              {Object.keys(navigationOptions).map((key) => renderDropdown(key))}
-
-              {/* Single Menu Items */}
-              {/* <button
-                onClick={() => setSelectedOption("Class List")}
+                <button
+                onClick={() => setSelectedOption("Home")}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors ${
                   selectedOption === "Class List"
                     ? "bg-gray-100 text-primary"
                     : "text-gray-700"
                 }`}
               >
-                <Users className="w-5 h-5" />
-                <span>Students</span>
-              </button> */}
+                <Home className="w-5 h-5" />
+                <span>Home</span>
+              </button>
+              {/* Dropdown Menus */}
+              {Object.keys(navigationOptions).map((key) => renderDropdown(key))}
+
+              {/* Single Menu Items */}
+            
 
               <button
                 onClick={() => setSelectedOption("Recorded Lectures")}
