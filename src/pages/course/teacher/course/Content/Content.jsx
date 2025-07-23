@@ -40,7 +40,7 @@ These fundamental concepts form the backbone of modern mathematics and are essen
             author: 'PROF. EMMA THOMPSON',
             date: '25 JUNE, 2025',
             time: '9:00 AM',
-            image: '/api/placeholder/400/300'
+            image: 'https://miro.medium.com/v2/resize:fit:1400/format:webp/1*RJ8DZD1b-ipwDENqdK3WRA.png'
           }
         },
         {
@@ -461,12 +461,12 @@ function ArticleView() {
               <ChevronLeft className="w-5 h-5 mr-2" />
               Back
             </button>
-            <div className="text-sm text-gray-500">Frame 23</div>
+           
           </div>
 
           {/* Progress Bar */}
           <div className="flex items-center space-x-4">
-            <button className="text-gray-400 hover:text-gray-600">×</button>
+          
             <div className="flex-1 bg-gray-300 rounded-full h-1">
               <div 
                 className="bg-blue-600 h-1 rounded-full transition-all duration-150"
@@ -491,7 +491,7 @@ function ArticleView() {
         {/* Article Image */}
         <div className="mb-8">
           <img 
-            src="/api/placeholder/800/400" 
+            src={selectedArticle.image} 
             alt="Article" 
             className="w-full h-96 object-cover rounded-lg shadow-sm"
           />
