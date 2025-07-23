@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://itc-backend-peach.vercel.app/api";
+const API_URL = "https://education-system-delta.vercel.app/api";
 
 const api = axios.create({
   baseURL: API_URL,
