@@ -72,7 +72,7 @@ const StudentHome = ({ setSelectedOption }) => {
       {/* Header Section */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-secondary">Home</h1>
+          <h1 className="text-3xl font-bold text-primary">Home</h1>
           <p className="text-tertiary mt-1">Welcome back, {user.name}</p>
         </div>
       </div>
@@ -83,7 +83,7 @@ const StudentHome = ({ setSelectedOption }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-tertiary text-sm">Total Students</p>
-              <h3 className="text-3xl font-bold text-secondary mt-1">32</h3>
+              <h3 className="text-3xl font-bold text-primary mt-1">32</h3>
             </div>
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
               <Users className="w-6 h-6 text-primary" />
@@ -99,7 +99,7 @@ const StudentHome = ({ setSelectedOption }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-tertiary text-sm">Course Progress</p>
-              <h3 className="text-3xl font-bold text-secondary mt-1">65%</h3>
+              <h3 className="text-3xl font-bold text-primary mt-1">65%</h3>
             </div>
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
               <BarChart2 className="w-6 h-6 text-primary" />
@@ -114,7 +114,7 @@ const StudentHome = ({ setSelectedOption }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-tertiary text-sm">Assignments</p>
-              <h3 className="text-3xl font-bold text-secondary mt-1">7</h3>
+              <h3 className="text-3xl font-bold text-primary mt-1">7</h3>
             </div>
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
               <FileText className="w-6 h-6 text-primary" />
@@ -130,7 +130,7 @@ const StudentHome = ({ setSelectedOption }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-tertiary text-sm">Upcoming</p>
-              <h3 className="text-3xl font-bold text-secondary mt-1">4</h3>
+              <h3 className="text-3xl font-bold text-primary mt-1">4</h3>
             </div>
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
               <Calendar className="w-6 h-6 text-primary" />
@@ -151,7 +151,7 @@ const StudentHome = ({ setSelectedOption }) => {
             <div className="p-6 border-b border-tertiary/10 flex justify-between items-center">
               <div className="flex items-center space-x-3">
                 <BookOpen className="w-6 h-6 text-primary" />
-                <h2 className="text-xl font-semibold text-secondary">
+                <h2 className="text-xl font-semibold text-primary">
                   Course Modules
                 </h2>
               </div>
@@ -214,7 +214,7 @@ const StudentHome = ({ setSelectedOption }) => {
             <div className="p-6 border-b border-tertiary/10 flex justify-between items-center">
               <div className="flex items-center space-x-3">
                 <Megaphone className="w-6 h-6 text-primary" />
-                <h2 className="text-xl font-semibold text-secondary">
+                <h2 className="text-xl font-semibold text-primary">
                   Announcements
                 </h2>
               </div>
@@ -233,7 +233,7 @@ const StudentHome = ({ setSelectedOption }) => {
                     key={announcement._id}
                     className="p-6 hover:bg-gray-50 transition-colors"
                   >
-                    <h3 className="font-medium text-secondary">
+                    <h3 className="font-medium text-primary">
                       {announcement.title}
                     </h3>
                     <div className="text-sm text-tertiary mt-1">
@@ -278,7 +278,7 @@ const StudentHome = ({ setSelectedOption }) => {
             <div className="p-6 border-b border-tertiary/10 flex justify-between items-center">
               <div className="flex items-center space-x-3">
                 <Calendar className="w-6 h-6 text-primary" />
-                <h2 className="text-xl font-semibold text-secondary">
+                <h2 className="text-xl font-semibold text-primary">
                   Upcoming Events
                 </h2>
               </div>
@@ -303,7 +303,7 @@ const StudentHome = ({ setSelectedOption }) => {
                       </span>
                     </div>
                     <div>
-                      <h3 className="font-medium text-secondary">
+                      <h3 className="font-medium text-primary">
                         {event.title}
                       </h3>
                       <div className="flex items-center mt-1 text-sm text-tertiary">
