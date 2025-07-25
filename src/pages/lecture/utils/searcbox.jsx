@@ -99,7 +99,7 @@ const AutoResizeTextbox = () => {
       const proxyUrl = `${corsProxyUrl}${apiUrl}`;
 
       const res = await fetch(
-        "https://chatbot.icyflower-1291aaed.uksouth.azurecontainerapps.io/api/chat",
+        "https://ca-dev-chatbot.whitegrass-ce3c3d28.centralindia.azurecontainerapps.io/api/chat ",
         {
           method: "POST",
           headers: {

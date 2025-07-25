@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   Circle,
@@ -56,7 +57,7 @@ const StudentHome = ({ setSelectedOption }) => {
       setLoading(true);
       const response = await getAllCourseAnnouncements({ courseID });
       setAnnouncements(response.announcements);
-    } catch (error) {
+    } catch (error){
       console.error("Error fetching announcements:", error);
     } finally {
       setLoading(false);
@@ -165,9 +166,9 @@ const StudentHome = ({ setSelectedOption }) => {
             </div>
 
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              {courseData.syllabus.map((module, index) => (
+              {courseData?.syllabus?.modules?.map((module, index) => (
                 <div
-                  key={module.id}
+                  key={module._id}
                   className="border cursor-pointer border-tertiary/10 rounded-xl overflow-hidden hover:shadow-md transition-all duration-300"
                 >
                   <div className="relative h-40 bg-gray-100 overflow-hidden">

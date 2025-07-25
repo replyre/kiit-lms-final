@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { createAssignment } from "../../../services/assignment.service";
 
-const AssignmentForm = ({ courseID, fetchAssignments }) => {
+const AssignmentForm = ({ courseID, fetchAssignments = () => console.log("Fetching assignments...") }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [attachments, setAttachments] = useState([]);
@@ -14,6 +14,8 @@ const AssignmentForm = ({ courseID, fetchAssignments }) => {
   // AI Question Generator states
   const [selectedOutcome, setSelectedOutcome] = useState("");
   const [selectedBloomLevel, setSelectedBloomLevel] = useState("");
+  const [questionType, setQuestionType] = useState("Long answer"); // Added state for question type
+  const [extraPrompt, setExtraPrompt] = useState(""); // Added state for extra prompt
   const [generatingQuestion, setGeneratingQuestion] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState([]);
   const [aiError, setAiError] = useState(null);
@@ -37,8 +39,11 @@ const AssignmentForm = ({ courseID, fetchAssignments }) => {
     "Evaluate",
     "Create",
   ];
+  
+  // Question types for the AI generator
+  const questionTypes = ["Objective", "Short answer", "Long answer", "Case based"];
 
-  // Handle file upload - accept multiple PDFs
+  // Handle file upload
   const handleFileUpload = (event) => {
     if (event.target.files && event.target.files.length > 0) {
       const newFiles = Array.from(event.target.files);
@@ -46,18 +51,18 @@ const AssignmentForm = ({ courseID, fetchAssignments }) => {
     }
   };
 
-  // Remove selected file by index
+  // Remove selected file
   const handleRemoveFile = (index) => {
     setAttachments((prevAttachments) =>
       prevAttachments.filter((_, fileIndex) => fileIndex !== index)
     );
   };
 
-  // Generate question using the API
+  // Generate question using the live API
   const generateQuestion = async () => {
-    if (!selectedOutcome || !selectedBloomLevel) {
+    if (!selectedOutcome || !selectedBloomLevel || !questionType) {
       setAiError(
-        "Please select both a course outcome and a Bloom's taxonomy level"
+        "Please select a course outcome, a Bloom's taxonomy level, and a question type."
       );
       return;
     }
@@ -65,150 +70,63 @@ const AssignmentForm = ({ courseID, fetchAssignments }) => {
     setGeneratingQuestion(true);
     setAiError(null);
 
+    const apiEndpoint = "https://question-generation.whitegrass-ce3c3d28.centralindia.azurecontainerapps.io/api/generate-questions";
+
+    // Use URLSearchParams to construct the x-www-form-urlencoded body
+    const requestBody = new URLSearchParams();
+    requestBody.append("selected_cos[]", selectedOutcome);
+    requestBody.append("selected_bloom[]", selectedBloomLevel);
+    requestBody.append("selected_types[]", questionType);
+    requestBody.append("extra_prompt[]", extraPrompt || "Generate based on concrete concepts");
+
     try {
-      // Mock the API response for development until CORS is resolved
-      // In a real-world scenario, you would use a proper backend proxy
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: requestBody.toString(),
+      });
 
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Create a mock response based on the selected outcome and bloom level
-      let mockResponse;
-
-      // Generate a contextually relevant question based on selection
-      const outcomeKeyword = selectedOutcome.split(" ")[1]; // Extract key term from outcome
-      const bloomLevelLower = selectedBloomLevel.toLowerCase();
-
-      if (
-        bloomLevelLower === "analyze" &&
-        selectedOutcome.includes("hardened concrete")
-      ) {
-        mockResponse = {
-          questions: {
-            subjective:
-              "Compare and contrast the rebound hammer test and ultrasonic pulse velocity test for evaluating hardened concrete strength. What factors might affect the accuracy of each method?",
-          },
-        };
-      } else if (
-        bloomLevelLower === "apply" &&
-        selectedOutcome.includes("hardened concrete")
-      ) {
-        mockResponse = {
-          questions: {
-            subjective:
-              "A concrete structure shows signs of surface scaling. Describe the test procedures you would use to evaluate the extent of damage and determine the remaining strength of the concrete.",
-          },
-        };
-      } else if (
-        bloomLevelLower === "evaluate" &&
-        selectedOutcome.includes("admixture")
-      ) {
-        mockResponse = {
-          questions: {
-            subjective:
-              "Evaluate the effectiveness of using a superplasticizer admixture in a high-strength concrete mix. What criteria would you use to determine if it's the optimal choice for a high-rise building project?",
-          },
-        };
-      } else if (
-        bloomLevelLower === "create" &&
-        selectedOutcome.includes("concrete mixes")
-      ) {
-        mockResponse = {
-          questions: {
-            subjective:
-              "Design a concrete mix for a marine structure exposed to seawater splashing. Specify all components, proportions, and justify your choices based on durability requirements.",
-          },
-        };
-      } else if (
-        bloomLevelLower === "understand" &&
-        selectedOutcome.includes("workability")
-      ) {
-        mockResponse = {
-          questions: {
-            subjective:
-              "Explain how temperature and humidity affect the workability of fresh concrete and how these factors should be accounted for in field conditions.",
-          },
-        };
-      } else if (
-        bloomLevelLower === "remember" &&
-        selectedOutcome.includes("types of concrete")
-      ) {
-        mockResponse = {
-          questions: {
-            subjective:
-              "List five different types of specialized concrete and state one primary application for each type.",
-          },
-        };
-      } else {
-        // Generic fallback based on bloom level and outcome
-        let questionStarter = "";
-
-        switch (bloomLevelLower) {
-          case "remember":
-            questionStarter = "Define and list the key characteristics of";
-            break;
-          case "understand":
-            questionStarter = "Explain the principles behind";
-            break;
-          case "apply":
-            questionStarter = "Demonstrate how you would apply";
-            break;
-          case "analyze":
-            questionStarter = "Analyze the factors that influence";
-            break;
-          case "evaluate":
-            questionStarter = "Evaluate the effectiveness of";
-            break;
-          case "create":
-            questionStarter = "Design a solution using";
-            break;
-          default:
-            questionStarter = "Discuss";
-        }
-
-        mockResponse = {
-          questions: {
-            subjective: `${questionStarter} ${outcomeKeyword} with respect to ${selectedOutcome.toLowerCase()}`,
-          },
-        };
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API Error (${response.status}): ${errorText}`);
       }
 
-      const data = mockResponse;
+      const data = await response.json();
 
-      // Extract subjective question and add it to the history
-      if (data.questions && data.questions.subjective) {
-        const newQuestion = {
-          question: data.questions.subjective,
-          outcome: selectedOutcome,
-          bloomLevel: selectedBloomLevel,
-        };
+      // Handle the new API response structure where `data.questions` is an array of objects.
+      if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
+        const newQuestions = data.questions.map(q_item => {
+            // The actual question text is in the 'output' property.
+            // Replace newline characters with <br> for HTML rendering.
+            const formattedQuestion = q_item.output.replace(/\n/g, '<br />');
+            return {
+                question: formattedQuestion,
+                rawQuestion: q_item.output, // Keep raw text for description
+                outcome: q_item.co,
+                bloomLevel: q_item.bloom_level,
+                type: questionType, // Use the type that was requested
+            };
+        });
 
-        setGeneratedQuestions((prev) => [newQuestion, ...prev]);
+        setGeneratedQuestions(prev => [...newQuestions, ...prev]);
+
       } else {
-        throw new Error("No subjective question was generated");
+        throw new Error("No questions were generated in the expected format.");
       }
     } catch (err) {
       console.error("Error generating question:", err);
-      setAiError(
-        err.message || "Failed to generate question. Please try again."
-      );
+      setAiError(err.message || "Failed to generate question. Check the console for details.");
     } finally {
       setGeneratingQuestion(false);
     }
   };
 
-  // Add selected question to description
-  const addQuestionToDescription = (question) => {
-    // Add "Q)" prefix to the question
-    const formattedQuestion = `Q) ${question}`;
-
-    // If description is empty, just add the question
-    if (!description.trim()) {
-      setDescription(formattedQuestion);
-    } else {
-      // Otherwise, append the question to the existing description
-      setDescription((prev) => `${prev}\n\n${formattedQuestion}`);
-    }
+  // Add selected question to description using the raw text to avoid HTML tags
+  const addQuestionToDescription = (rawQuestion) => {
+    const formattedQuestion = `Q) ${rawQuestion}`;
+    setDescription((prev) => (prev ? `${prev}\n\n${formattedQuestion}` : formattedQuestion));
   };
 
   // Remove question from the list
@@ -226,41 +144,29 @@ const AssignmentForm = ({ courseID, fetchAssignments }) => {
     setSuccess(false);
 
     try {
-      // Create FormData object to handle file upload
       const formData = new FormData();
-
-      // Append text fields exactly as shown in Postman
       formData.append("title", title);
       formData.append("description", description);
       formData.append("totalPoints", totalPoints.toString());
       formData.append("dueDate", dueDate);
-
-      // Append multiple attachments
       attachments.forEach((file) => {
         formData.append("attachments", file);
       });
 
-      // Call the createAssignment service function
-      const result = await createAssignment(courseID, formData);
+      await createAssignment(courseID, formData);
 
-      // Handle success
       setSuccess(true);
-
-      // Reset form after successful submission
       setTitle("");
       setDescription("");
       setAttachments([]);
       setTotalPoints(100);
       setDueDate("");
+      setGeneratedQuestions([]);
       setTimeout(() => {
-        fetchAssignments();
+        if(fetchAssignments) fetchAssignments();
       }, 1000);
     } catch (err) {
-      // Handle error
-      setError(
-        err.response?.data?.message ||
-          "Failed to create assignment. Please try again."
-      );
+      setError(err.response?.data?.message || "Failed to create assignment.");
       console.error("Error creating assignment:", err);
     } finally {
       setLoading(false);
@@ -270,11 +176,11 @@ const AssignmentForm = ({ courseID, fetchAssignments }) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex w-full p-6 max-h-[90vh] overflow-y-auto"
+      className="flex flex-col lg:flex-row w-full p-4 md:p-6 gap-4 max-h-[90vh] overflow-y-auto"
     >
       {/* Left Section - Assignment Form */}
-      <div className="w-2/3 p-4 bg-white shadow-md rounded-lg">
-        <h2 className="text-lg font-semibold mb-4">Create Assignment</h2>
+      <div className="w-full lg:w-2/3 p-4 bg-white shadow-md rounded-lg">
+        <h2 className="text-xl font-semibold mb-4">Create Assignment</h2>
         <input
           type="text"
           className="w-full border p-2 rounded mb-4"
@@ -292,92 +198,58 @@ const AssignmentForm = ({ courseID, fetchAssignments }) => {
         ></textarea>
 
         {/* AI Question Generator */}
-        <div className="mb-6 p-4 border rounded border-blue-200 bg-blue-50">
-          <h3 className="text-md font-semibold mb-2 text-blue-700">
+        <div className="mb-6 p-4 border rounded-lg border-blue-200 bg-blue-50">
+          <h3 className="text-lg font-semibold mb-3 text-blue-800">
             AI Question Generator
           </h3>
-          <div className="grid grid-cols-2 gap-4 mb-3">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Course Outcome
-              </label>
-              <select
-                className="w-full border p-2 rounded"
-                value={selectedOutcome}
-                onChange={(e) => setSelectedOutcome(e.target.value)}
-              >
-                <option value="">Select a Course Outcome</option>
-                {courseOutcomes.map((outcome, index) => (
-                  <option key={index} value={outcome}>
-                    {outcome}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Bloom's Level
-              </label>
-              <select
-                className="w-full border p-2 rounded"
-                value={selectedBloomLevel}
-                onChange={(e) => setSelectedBloomLevel(e.target.value)}
-              >
-                <option value="">Select a Bloom's Level</option>
-                {bloomLevels.map((level, index) => (
-                  <option key={index} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+            <select className="w-full border p-2 rounded" value={selectedOutcome} onChange={(e) => setSelectedOutcome(e.target.value)}>
+              <option value="">Select a Course Outcome</option>
+              {courseOutcomes.map((o, i) => <option key={i} value={o}>{o}</option>)}
+            </select>
+            <select className="w-full border p-2 rounded" value={selectedBloomLevel} onChange={(e) => setSelectedBloomLevel(e.target.value)}>
+              <option value="">Select a Bloom's Level</option>
+              {bloomLevels.map((l, i) => <option key={i} value={l}>{l}</option>)}
+            </select>
+             <select className="w-full border p-2 rounded" value={questionType} onChange={(e) => setQuestionType(e.target.value)}>
+               <option value="">Select Question Type</option>
+               {questionTypes.map((t, i) => <option key={i} value={t}>{t}</option>)}
+            </select>
+            <textarea
+                className="w-full border p-2 rounded md:col-span-2"
+                placeholder="Extra Prompt (Optional)"
+                rows="2"
+                value={extraPrompt}
+                onChange={(e) => setExtraPrompt(e.target.value)}
+            ></textarea>
           </div>
 
           <button
             type="button"
-            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-300 mb-3"
+            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-300 transition-colors mb-3"
             onClick={generateQuestion}
-            disabled={
-              generatingQuestion || !selectedOutcome || !selectedBloomLevel
-            }
+            disabled={generatingQuestion || !selectedOutcome || !selectedBloomLevel || !questionType}
           >
             {generatingQuestion ? "Generating..." : "Generate Question"}
           </button>
 
-          {aiError && (
-            <div className="text-red-600 text-sm mb-3">{aiError}</div>
-          )}
+          {aiError && <div className="text-red-600 text-sm mb-3 p-2 bg-red-100 rounded">{aiError}</div>}
 
-          {/* Generated Questions Display */}
           {generatedQuestions.length > 0 && (
-            <div className="mt-3">
-              <h4 className="text-sm font-semibold mb-2">
-                Generated Questions:
-              </h4>
+            <div className="mt-4">
+              <h4 className="text-md font-semibold mb-2">Generated Questions:</h4>
               <div className="space-y-3">
                 {generatedQuestions.map((item, index) => (
-                  <div key={index} className="p-3 border rounded bg-white">
+                  <div key={index} className="p-3 border rounded bg-white shadow-sm">
                     <div className="flex justify-between items-start">
-                      <p className="text-sm mb-2">{item.question}</p>
-                      <button
-                        type="button"
-                        onClick={() => removeQuestion(index)}
-                        className="text-red-500 hover:text-red-700 ml-2 text-sm"
-                        title="Remove question"
-                      >
-                        ✕
-                      </button>
+                      <p className="text-sm mb-2 pr-2" dangerouslySetInnerHTML={{ __html: item.question }}></p>
+                      <button type="button" onClick={() => removeQuestion(index)} className="text-red-500 hover:text-red-700 ml-2 text-lg font-bold" title="Remove question">×</button>
                     </div>
-                    <div className="flex justify-between mt-2">
-                      <button
-                        type="button"
-                        className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
-                        onClick={() => addQuestionToDescription(item.question)}
-                      >
-                        Use This Question
-                      </button>
-                      <div className="text-xs text-gray-500">
-                        {item.bloomLevel} - {item.outcome.substring(0, 30)}...
+                    <div className="flex justify-between items-center mt-2">
+                      <button type="button" className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200" onClick={() => addQuestionToDescription(item.rawQuestion)}>Use This Question</button>
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <span className="font-semibold capitalize px-2 py-0.5 bg-gray-200 rounded">{item.type}</span>
+                        <span>{item.bloomLevel}</span>
                       </div>
                     </div>
                   </div>
@@ -387,49 +259,18 @@ const AssignmentForm = ({ courseID, fetchAssignments }) => {
           )}
         </div>
 
-        {/* File Upload Section - PDF only, multiple files */}
+        {/* File Upload Section */}
         <div className="mb-4">
-          <label className="block mb-2 font-semibold">
-            Attachments (PDF only)
-          </label>
-          <div className="flex items-center">
-            <input
-              type="file"
-              accept=".pdf"
-              multiple
-              onChange={handleFileUpload}
-              className="w-full border p-2 rounded"
-            />
-          </div>
-
-          {/* Files Preview Section */}
+          <label className="block mb-2 font-semibold">Attachments (PDF only)</label>
+          <input type="file" accept=".pdf" multiple onChange={handleFileUpload} className="w-full border p-2 rounded" />
           {attachments.length > 0 && (
             <div className="mt-4">
-              <h4 className="text-sm font-semibold mb-2">
-                Selected Attachments ({attachments.length})
-              </h4>
-              <div className="border rounded p-2">
+              <h4 className="text-sm font-semibold mb-2">Selected ({attachments.length})</h4>
+              <div className="border rounded p-2 space-y-2">
                 {attachments.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between items-center py-2 px-3 hover:bg-gray-50 rounded"
-                  >
-                    <div className="flex items-center">
-                      <span className="mr-2">📄</span>
-                      <span className="text-sm text-gray-700 truncate max-w-xs">
-                        {file.name}
-                      </span>
-                      <span className="ml-2 text-xs text-gray-500">
-                        ({(file.size / 1024).toFixed(2)} KB)
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveFile(index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      ✕
-                    </button>
+                  <div key={index} className="flex justify-between items-center py-1 px-2 hover:bg-gray-50 rounded">
+                    <span className="text-sm text-gray-700 truncate max-w-xs">📄 {file.name} ({(file.size / 1024).toFixed(2)} KB)</span>
+                    <button type="button" onClick={() => handleRemoveFile(index)} className="text-red-500 hover:text-red-700 font-bold">×</button>
                   </div>
                 ))}
               </div>
@@ -439,55 +280,31 @@ const AssignmentForm = ({ courseID, fetchAssignments }) => {
       </div>
 
       {/* Right Sidebar */}
-      <div className="w-1/3 p-4 bg-gray-100 shadow-md rounded-lg ml-4">
-        <h3 className="text-md font-semibold mb-2">Assignment Settings</h3>
-
+      <div className="w-full lg:w-1/3 p-4 bg-gray-50 shadow-md rounded-lg h-fit">
+        <h3 className="text-lg font-semibold mb-4">Assignment Settings</h3>
         <div className="mb-4">
-          <label className="block font-medium">Total Points</label>
-          <select
-            className="w-full border p-2 rounded"
-            value={totalPoints}
-            onChange={(e) => setTotalPoints(e.target.value)}
-          >
-            <option value="100">4</option>
-            <option value="50">3</option>
-            <option value="25">2</option>
-            <option value="10">1</option>
+          <label className="block font-medium mb-1">Total Points</label>
+          <select className="w-full border p-2 rounded" value={totalPoints} onChange={(e) => setTotalPoints(e.target.value)}>
+            <option value="100">100</option>
+            <option value="50">50</option>
+            <option value="25">25</option>
+            <option value="10">10</option>
             <option value="0">Ungraded</option>
           </select>
         </div>
-
         <div className="mb-4">
-          <label className="block font-medium">Due Date</label>
-          <input
-            type="date"
-            className="w-full border p-2 rounded"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            required
-          />
+          <label className="block font-medium mb-1">Due Date</label>
+          <input type="date" className="w-full border p-2 rounded" value={dueDate} onChange={(e) => setDueDate(e.target.value)} required />
         </div>
-
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
+          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-300 transition-colors"
           disabled={loading || !title || !dueDate}
         >
           {loading ? "Creating..." : "Create Assignment"}
         </button>
-
-        {/* Display success or error message */}
-        {success && (
-          <div className="mt-4 p-2 bg-green-100 text-green-700 rounded">
-            Assignment created successfully!!!
-          </div>
-        )}
-
-        {error && (
-          <div className="mt-4 p-2 bg-red-100 text-red-700 rounded">
-            {error}
-          </div>
-        )}
+        {success && <div className="mt-4 p-2 bg-green-100 text-green-700 rounded">Assignment created successfully!</div>}
+        {error && <div className="mt-4 p-2 bg-red-100 text-red-700 rounded">{error}</div>}
       </div>
     </form>
   );

@@ -25,48 +25,13 @@ import { useParams } from "react-router-dom";
 import { useUtilityContext } from "../../../../context/UtilityContext";
 
 const TeacherHome = ({ setSelectedOption }) => {
-  // Dummy data
   const { user } = useAuth();
-  const { courseData } = useCourse();
+  const { courseData } = useCourse(); // This now holds the provided course data
   const { courseID } = useParams();
   const { currentModuleIndex, setCurrentModuleIndex } = useUtilityContext();
   console.log(user, courseData);
 
-  const courseModules = [
-    {
-      id: 1,
-      title: "Introduction to Statistics",
-      image: "/api/placeholder/400/220",
-      completed: 2,
-      total: 5,
-      progress: 40,
-    },
-    {
-      id: 2,
-      title: "Probability Distributions",
-      image: "/api/placeholder/400/220",
-      completed: 5,
-      total: 10,
-      progress: 50,
-    },
-    {
-      id: 3,
-      title: "Hypothesis Testing",
-      image: "/api/placeholder/400/220",
-      completed: 0,
-      total: 8,
-      progress: 0,
-    },
-    {
-      id: 4,
-      title: "Regression Analysis",
-      image: "/api/placeholder/400/220",
-      completed: 1,
-      total: 7,
-      progress: 14,
-    },
-  ];
-
+  // Dummy data (can be replaced with actual data from backend if available)
   const assignments = [
     {
       id: 1,
@@ -135,7 +100,7 @@ const TeacherHome = ({ setSelectedOption }) => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-primary">Home</h1>
-          <p className="text-tertiary mt-1">Welcome back, {user.name}</p>
+          <p className="text-tertiary mt-1">Welcome back, {user?.name}</p>
         </div>
       </div>
 
@@ -163,14 +128,19 @@ const TeacherHome = ({ setSelectedOption }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-tertiary text-sm">Course Progress</p>
-              <h3 className="text-3xl font-bold text-primary mt-1">42%</h3>
+              <h3 className="text-3xl font-bold text-primary mt-1">
+                {courseData?.overallCompletion || 0}%
+              </h3>
             </div>
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
               <BarChart2 className="w-6 h-6 text-primary" />
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm text-tertiary">
-            <span>8 of 30 topics completed</span>
+            <span>
+              {courseData?.reviewedLectureCount || 0} of{" "}
+              {courseData?.totalLectureCount || 0} topics completed
+            </span>
           </div>
         </div>
 
@@ -178,7 +148,9 @@ const TeacherHome = ({ setSelectedOption }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-tertiary text-sm">Assignments</p>
-              <h3 className="text-3xl font-bold text-primary mt-1">5</h3>
+              <h3 className="text-3xl font-bold text-primary mt-1">
+                {assignments.length}
+              </h3>
             </div>
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
               <FileText className="w-6 h-6 text-primary" />
@@ -194,7 +166,9 @@ const TeacherHome = ({ setSelectedOption }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-tertiary text-sm">Upcoming</p>
-              <h3 className="text-3xl font-bold text-primary mt-1">3</h3>
+              <h3 className="text-3xl font-bold text-primary mt-1">
+                {upcomingEvents.length}
+              </h3>
             </div>
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
               <Calendar className="w-6 h-6 text-primary" />
@@ -229,40 +203,46 @@ const TeacherHome = ({ setSelectedOption }) => {
             </div>
 
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              {courseData.syllabus.map((module, index) => (
-                <div
-                  key={module.id}
-                  className="border cursor-pointer border-tertiary/10 rounded-xl overflow-hidden hover:shadow-md transition-all duration-300"
-                >
-                  <div className="relative h-40 bg-gray-100 overflow-hidden">
-                    <img
-                      src={"/module.png"}
-                      alt={module.moduleTitle}
-                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                      <div className="text-white font-medium">
-                        {module.moduleTitle}
+              {courseData?.syllabus?.modules?.length > 0 ? (
+                courseData.syllabus.modules.map((module, index) => (
+                  <div
+                    key={module._id}
+                    className="border cursor-pointer border-tertiary/10 rounded-xl overflow-hidden hover:shadow-md transition-all duration-300"
+                  >
+                    <div className="relative h-40 bg-gray-100 overflow-hidden">
+                      <img
+                        src={"/module.png"} // Placeholder image, consider using a module-specific image if available in data
+                        alt={module.moduleTitle}
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                        <div className="text-white font-medium">
+                          {module.moduleTitle}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4">
+                      <div className="mt-4 flex justify-between">
+                        <button
+                          className="text-primary hover:text-primary/80 text-sm font-medium flex items-center"
+                          onClick={() => {
+                            setSelectedOption("Content");
+                            setCurrentModuleIndex(index);
+                          }}
+                        >
+                          Manage Content
+                          <ArrowRight className="w-4 h-4 ml-1" />
+                        </button>
                       </div>
                     </div>
                   </div>
-
-                  <div className="p-4">
-                    <div className="mt-4 flex justify-between">
-                      <button
-                        className="text-primary hover:text-primary/80 text-sm font-medium flex items-center"
-                        onClick={() => {
-                          setSelectedOption("Content");
-                          setCurrentModuleIndex(index);
-                        }}
-                      >
-                        Manage Content
-                        <ArrowRight className="w-4 h-4 ml-1" />
-                      </button>
-                    </div>
-                  </div>
+                ))
+              ) : (
+                <div className="col-span-full text-center text-tertiary p-4">
+                  No course modules available.
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -278,52 +258,58 @@ const TeacherHome = ({ setSelectedOption }) => {
             </div>
 
             <div className="divide-y divide-tertiary/10">
-              {assignments.map((assignment) => (
-                <div
-                  key={assignment.id}
-                  className="p-6 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-medium text-primary">
-                        {assignment.title}
-                      </h3>
-                      <div className="flex items-center mt-2 text-sm">
-                        <Clock className="w-4 h-4 text-tertiary mr-1" />
-                        <span className="text-tertiary">
-                          Due: {assignment.dueDate}
-                        </span>
+              {assignments.length > 0 ? (
+                assignments.map((assignment) => (
+                  <div
+                    key={assignment.id}
+                    className="p-6 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-medium text-primary">
+                          {assignment.title}
+                        </h3>
+                        <div className="flex items-center mt-2 text-sm">
+                          <Clock className="w-4 h-4 text-tertiary mr-1" />
+                          <span className="text-tertiary">
+                            Due: {assignment.dueDate}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <div
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            assignment.status === "active"
+                              ? "bg-primary/10 text-primary"
+                              : "bg-amber-50 text-amber-600"
+                          }`}
+                        >
+                          {assignment.status === "active" ? "Active" : "Upcoming"}
+                        </div>
+                        <div className="text-sm text-tertiary mt-2">
+                          {assignment.submissions} of {assignment.totalStudents}{" "}
+                          submitted
+                        </div>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end">
+                    <div className="mt-4 w-full bg-gray-100 rounded-full h-2">
                       <div
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          assignment.status === "active"
-                            ? "bg-primary/10 text-primary"
-                            : "bg-amber-50 text-amber-600"
-                        }`}
-                      >
-                        {assignment.status === "active" ? "Active" : "Upcoming"}
-                      </div>
-                      <div className="text-sm text-tertiary mt-2">
-                        {assignment.submissions} of {assignment.totalStudents}{" "}
-                        submitted
-                      </div>
+                        className="bg-primary h-2 rounded-full"
+                        style={{
+                          width: `${
+                            (assignment.submissions / assignment.totalStudents) *
+                            100
+                          }%`,
+                        }}
+                      ></div>
                     </div>
                   </div>
-                  <div className="mt-4 w-full bg-gray-100 rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full"
-                      style={{
-                        width: `${
-                          (assignment.submissions / assignment.totalStudents) *
-                          100
-                        }%`,
-                      }}
-                    ></div>
-                  </div>
+                ))
+              ) : (
+                <div className="p-6 text-center text-tertiary">
+                  No assignments available.
                 </div>
-              ))}
+              )}
             </div>
 
             <div className="p-4 border-t border-tertiary/10 bg-gray-50">
@@ -417,48 +403,48 @@ const TeacherHome = ({ setSelectedOption }) => {
                 </h2>
               </div>
               <div className="text-sm text-tertiary font-medium">
-                April 2025
+                April 2025 {/* This might need to be dynamic if events span months */}
               </div>
             </div>
 
             <div className="divide-y divide-tertiary/10">
-              {upcomingEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="p-6 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-lg flex flex-col items-center justify-center">
-                      <span className="text-primary font-bold text-lg">
-                        {event.date.split(" ")[1].replace(",", "")}
-                      </span>
-                      <span className="text-tertiary text-xs">
-                        {event.date.split(" ")[0]}
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-primary">
-                        {event.title}
-                      </h3>
-                      <div className="flex items-center mt-1 text-sm text-tertiary">
-                        <Clock className="w-3 h-3 mr-1" />
-                        <span>{event.time}</span>
+              {upcomingEvents.length > 0 ? (
+                upcomingEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className="p-6 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex gap-4">
+                      <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-lg flex flex-col items-center justify-center">
+                        <span className="text-primary font-bold text-lg">
+                          {event.date.split(" ")[1].replace(",", "")}
+                        </span>
+                        <span className="text-tertiary text-xs">
+                          {event.date.split(" ")[0]}
+                        </span>
                       </div>
-                      <div className="mt-1 text-sm text-tertiary">
-                        {event.location}
+                      <div>
+                        <h3 className="font-medium text-primary">
+                          {event.title}
+                        </h3>
+                        <div className="flex items-center mt-1 text-sm text-tertiary">
+                          <Clock className="w-3 h-3 mr-1" />
+                          <span>{event.time}</span>
+                        </div>
+                        <div className="mt-1 text-sm text-tertiary">
+                          {event.location}
+                        </div>
                       </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="p-8 text-center">
+                  <Clock className="w-12 h-12 text-tertiary/30 mx-auto mb-3" />
+                  <p className="text-tertiary">No upcoming events</p>
                 </div>
-              ))}
+              )}
             </div>
-
-            {upcomingEvents.length === 0 && (
-              <div className="p-8 text-center">
-                <Clock className="w-12 h-12 text-tertiary/30 mx-auto mb-3" />
-                <p className="text-tertiary">No upcoming events</p>
-              </div>
-            )}
 
             {/* <div className="p-4 border-t border-tertiary/10 bg-gray-50">
               <button className="w-full py-2 text-primary hover:text-primary/80 text-sm font-medium flex items-center justify-center">

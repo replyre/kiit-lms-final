@@ -17,7 +17,7 @@ const TeacherCourses = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSemester, setFilterSemester] = useState("All");
   const [filterYear, setFilterYear] = useState("All");
-
+  
   useEffect(() => {
     const fetchCourses = async () => {
       try {
