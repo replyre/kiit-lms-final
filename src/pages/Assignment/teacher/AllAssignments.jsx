@@ -35,7 +35,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
       {/* Modal Content */}
       <div className="relative z-50 w-full max-w-7xl bg-white rounded-lg shadow-xl">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-secondary">{title}</h2>
+          <h2 className="text-xl font-semibold text-primary">{title}</h2>
           <button
             onClick={onClose}
             className="p-1 hover:bg-gray-100 rounded-full transition-colors"
@@ -86,7 +86,7 @@ const AssignmentCard = ({
           <div>
             <div className="flex items-center gap-2">
               <Link to={`/teacher/assignment/${id}`}>
-                <h3 className="font-semibold text-lg text-secondary hover:text-primary transition-colors">
+                <h3 className="font-semibold text-lg text-primary hover:text-primary transition-colors">
                   {title}
                 </h3>
               </Link>
@@ -103,7 +103,7 @@ const AssignmentCard = ({
 
           <div className="relative">
             <button
-              className="text-tertiary hover:text-secondary p-1 rounded-full hover:bg-gray-100"
+              className="text-tertiary hover:text-primary p-1 rounded-full hover:bg-gray-100"
               onClick={(e) => {
                 e.stopPropagation();
                 onMenuClick(id, e);
@@ -115,7 +115,7 @@ const AssignmentCard = ({
             {openMenuId === id && (
               <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-20">
                 <button
-                  className="flex items-center gap-2 w-full px-4 py-2 text-left text-secondary hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-2 w-full px-4 py-2 text-left text-primary hover:bg-gray-50 transition-colors"
                   onClick={() => onEdit(id)}
                 >
                   <Edit size={16} />
@@ -138,7 +138,7 @@ const AssignmentCard = ({
             <div className="flex flex-col items-center p-2 rounded-lg bg-gray-50">
               <div className="flex items-center gap-1">
                 <CheckCircle size={16} className="text-primary" />
-                <span className="text-lg font-semibold text-secondary">
+                <span className="text-lg font-semibold text-primary">
                   {stats.turnedIn}
                 </span>
               </div>
@@ -148,7 +148,7 @@ const AssignmentCard = ({
             <div className="flex flex-col items-center p-2 rounded-lg bg-gray-50">
               <div className="flex items-center gap-1">
                 <Users size={16} className="text-blue-500" />
-                <span className="text-lg font-semibold text-secondary">
+                <span className="text-lg font-semibold text-primary">
                   {stats.assigned}
                 </span>
               </div>
@@ -158,7 +158,7 @@ const AssignmentCard = ({
             <div className="flex flex-col items-center p-2 rounded-lg bg-gray-50">
               <div className="flex items-center gap-1">
                 <Award size={16} className="text-amber-500" />
-                <span className="text-lg font-semibold text-secondary">
+                <span className="text-lg font-semibold text-primary">
                   {stats.graded}
                 </span>
               </div>
@@ -170,7 +170,7 @@ const AssignmentCard = ({
         {/* Attachments Section */}
         {attachments && attachments.length > 0 && (
           <div className="mt-4 border-t border-gray-100 pt-4">
-            <div className="text-sm font-medium text-secondary mb-2">
+            <div className="text-sm font-medium text-primary mb-2">
               Attachments
             </div>
             <div className="space-y-2">
@@ -314,7 +314,7 @@ const AllAssignments = ({ courseID }) => {
     <div className="bg-gray-50 md:px-[15%] rounded-lg shadow-sm">
       <div className="px-6 py-5 border-b border-gray-200 bg-white rounded-t-lg">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-secondary">Assignments</h2>
+          <h2 className="text-2xl font-bold text-primary">Assignments</h2>
           <button
             className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-colors shadow-sm"
             onClick={handleOpenCreateModal}

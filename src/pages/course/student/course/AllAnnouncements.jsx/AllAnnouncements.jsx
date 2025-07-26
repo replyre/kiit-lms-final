@@ -75,7 +75,7 @@ const AllAnnouncements = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-6 bg-white rounded-xl shadow-sm">
-      <h1 className="text-2xl font-bold text-secondary mb-4">
+      <h1 className="text-2xl font-bold text-primary mb-4">
         All Announcements
       </h1>
 
@@ -115,7 +115,7 @@ const AllAnnouncements = () => {
                     key={announcement._id}
                     className="p-4 border border-tertiary/10 rounded-lg hover:shadow-md transition-all"
                   >
-                    <h3 className="text-lg font-semibold text-secondary">
+                    <h3 className="text-lg font-semibold text-primary">
                       {announcement.title}
                     </h3>
                     <div className="text-sm text-tertiary mt-1">
