@@ -33,6 +33,17 @@ const useAppContext = () => {
   return context;
 };
 
+// ==================== A NEW LOADER COMPONENT ====================
+function FullScreenLoader({ text = "Updating Course..." }) {
+  return (
+    <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex flex-col items-center justify-center z-[100]">
+      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-400"></div>
+      <p className="text-white text-xl font-semibold mt-6">{text}</p>
+    </div>
+  );
+}
+
+
 // ==================== MAIN APP COMPONENT ====================
 function ContentSection() {
   const { courseData, setCourseData } = useCourse();
@@ -42,8 +53,12 @@ function ContentSection() {
   const [currentView, setCurrentView] = useState('modules');
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("Updating Course...");
 
   useEffect(() => {
+    // This effect synchronizes the local `modules` state for rendering
+    // whenever the source of truth (`courseData`) changes.
     if (courseData?.syllabus?.modules) {
       const transformedModules = courseData.syllabus.modules.map(module => ({
         ...module,
@@ -66,89 +81,178 @@ function ContentSection() {
     }
   }, [courseData, activeModuleId]);
 
+  // This function is for updates that originate from the local state, like editor changes.
+ // This function is for updates that originate from the local state, like editor changes.
   const handleUpdateCourse = async (updatedModules) => {
+    setLoadingText("Saving Changes...");
+    setIsLoading(true);
     try {
-      // Create a deep copy of the entire course data to avoid direct mutation
       const courseDataPayload = JSON.parse(JSON.stringify(courseData));
 
-      // Clean the modules array to remove frontend-specific properties
       const cleanedModules = updatedModules.map(m => {
-        const {id, name, article, ...restOfModule} = m;
+        // ✅ FIX: Only remove the temporary client-side 'id'.
+        const { id, ...restOfModule } = m;
         return {
-            ...restOfModule,
-            chapters: m.chapters.map(c => {
-                const {id, article, ...restOfChapter} = c;
-                const articles = c.articles ? c.articles.map(a => {
-                    const {chapterId, ...restOfArticle} = a;
-                    return restOfArticle;
-                }) : [];
-                return { ...restOfChapter, articles };
-            })
+          ...restOfModule,
+          chapters: m.chapters.map(c => {
+            const { id, article, ...restOfChapter } = c;
+            const articles = c.articles ? c.articles.map(a => {
+              const { chapterId, ...restOfArticle } = a;
+              return restOfArticle;
+            }) : [];
+            return { ...restOfChapter, articles };
+          })
         }
       });
-      
-      // Replace the modules in our payload with the cleaned version
+
       courseDataPayload.syllabus.modules = cleanedModules;
+      const { _id, id, ...dataToSend } = courseDataPayload;
 
-      // The backend expects the data object, not including the ID
-      const { _id, ...dataToSend } = courseDataPayload;
-
-      const response = await updateCourse(courseData.id, dataToSend);
-      setCourseData(response); // Update context with response from backend
+      const response = await updateCourse(courseData._id, dataToSend);
+      setCourseData(response);
       alert('Course updated successfully!');
     } catch (error) {
       console.error('Failed to update course:', error);
       alert('Failed to update course. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  /**
+   * ROBUST FIX: Adds a chapter by modifying a deep clone of the original `courseData`.
+   * This avoids state synchronization issues by not relying on the derived `modules` state.
+   */
+  const handleAddChapter = async (moduleId, newChapterData) => {
+    setIsModalOpen(false);
+    setLoadingText("Adding Chapter...");
+    setIsLoading(true);
+
+    // Create a deep copy of the source of truth to modify
+    const coursePayload = JSON.parse(JSON.stringify(courseData));
+    const moduleToUpdate = coursePayload.syllabus.modules.find(m => m._id === moduleId);
+
+    if (!moduleToUpdate) {
+        console.error('Module not found in course data for update:', moduleId);
+        alert('An error occurred. Could not add the chapter.');
+        setIsLoading(false);
+        return;
+    }
+
+    const newChapter = {
+        // The backend will generate the real _id upon creation
+        title: newChapterData.title,
+        description: newChapterData.description,
+        color: 'bg-blue-900',
+        isActive: true,
+        order: moduleToUpdate.chapters ? moduleToUpdate.chapters.length + 1 : 1,
+        articles: [], // A new chapter starts with no articles
+        articleCount: 0,
+    };
+
+    if (!moduleToUpdate.chapters) {
+        moduleToUpdate.chapters = [];
+    }
+    
+    moduleToUpdate.chapters.push(newChapter);
+
+    try {
+        const { _id, id, ...dataToSend } = coursePayload;
+        const response = await updateCourse(courseData._id, dataToSend);
+        setCourseData(response); // Update context with the response from the server
+        alert('Chapter added successfully!');
+    } catch (error) {
+        console.error('Failed to add chapter:', error);
+        alert('Failed to add chapter. Please try again.');
+    } finally {
+        setIsLoading(false);
+    }
+  };
+  
+  /**
+   * ROBUST FIX: Deletes a chapter by modifying a clone of the original `courseData`.
+   * This aligns with the robust pattern used in `handleAddChapter`.
+   */
+  const handleDeleteChapter = async (moduleId, chapterId) => {
+    if (!window.confirm('Are you sure you want to delete this chapter? This action cannot be undone.')) {
+      return;
+    }
+    
+    setLoadingText("Deleting Chapter...");
+    setIsLoading(true);
+
+    const coursePayload = JSON.parse(JSON.stringify(courseData));
+    const moduleToUpdate = coursePayload.syllabus.modules.find(m => m._id === moduleId);
+
+    if (moduleToUpdate && moduleToUpdate.chapters) {
+        const chapterIndex = moduleToUpdate.chapters.findIndex(c => c._id === chapterId);
+        if (chapterIndex > -1) {
+            moduleToUpdate.chapters.splice(chapterIndex, 1);
+        } else {
+             console.error('Chapter not found for deletion.');
+             alert('An error occurred. Could not delete the chapter.');
+             setIsLoading(false);
+             return;
+        }
+    } else {
+        console.error('Module not found for deletion.');
+        alert('An error occurred. Could not delete the chapter.');
+        setIsLoading(false);
+        return;
+    }
+
+    try {
+        const { _id, id, ...dataToSend } = coursePayload;
+        const response = await updateCourse(courseData._id, dataToSend);
+        setCourseData(response); // Update context with the response from the server
+        alert('Chapter deleted successfully!');
+    } catch (error) {
+        console.error('Failed to delete chapter:', error);
+        alert('Failed to delete chapter. Please try again.');
+    } finally {
+        setIsLoading(false);
     }
   };
 
-  const handleAddChapter = (moduleId, newChapterData) => {
-    const newModules = modules.map(module => {
-      if (module.id === moduleId) {
-        const newChapter = {
-         
-          title: newChapterData.title,
-          description: newChapterData.description,
-          color: 'bg-blue-900', // Default color
-          isActive: true,
-          order: module.chapters.length + 1,
-          articles: [], // Start with no articles
-          articleCount: 0,
-        };
-        return {
-          ...module,
-          chapters: [...module.chapters, newChapter]
-        };
-      }
-      return module;
-    });
-    setModules(newModules);
-    handleUpdateCourse(newModules);
-    setIsModalOpen(false);
+  /**
+   * ROBUST FIX: Updates article content by modifying a deep clone of `courseData`.
+   * This ensures consistency and avoids relying on a separate 'modules' state.
+   */
+  const handleUpdateArticleContent = async (moduleId, chapterId, articleId, newContent) => {
+    setLoadingText("Saving Changes...");
+    setIsLoading(true);
+
+    try {
+        const coursePayload = JSON.parse(JSON.stringify(courseData));
+
+        // Find the specific article to update
+        const module = coursePayload.syllabus.modules.find(m => m._id === moduleId);
+        const chapter = module?.chapters.find(c => c._id === chapterId);
+        const article = chapter?.articles.find(a => a._id === articleId);
+
+        if (!article) {
+            throw new Error("Article not found for update.");
+        }
+
+        // Update the content
+        article.content = newContent;
+
+        const { _id, id, ...dataToSend } = coursePayload;
+        const response = await updateCourse(courseData._id, dataToSend);
+        setCourseData(response); // Update context with the response from the server
+        alert('Changes saved successfully!');
+    } catch (error) {
+        console.error('Failed to update article content:', error);
+        alert('Failed to save changes. Please try again.');
+    } finally {
+        setIsLoading(false);
+    }
   };
 
-  const handleUpdateArticleContent = (articleId, newContent) => {
-    const newModules = modules.map(module => ({
-      ...module,
-      chapters: module.chapters.map(chapter => {
-        if (chapter.article && chapter.article.id === articleId) {
-          const updatedArticle = { ...chapter.article, content: newContent };
-          // Also update the article within the original articles array
-          const updatedArticlesArray = chapter.articles.map(a => a._id === articleId ? updatedArticle : a);
-          return {
-            ...chapter,
-            article: updatedArticle, // This is the quick-access object
-            articles: updatedArticlesArray // This is the source array
-          };
-        }
-        return chapter;
-      })
-    }));
-    setModules(newModules);
-  };
+
   
-  const handleSaveChanges = () => {
-    handleUpdateCourse(modules);
+  const handleSaveChanges = async () => {
+    // This function now correctly uses the generic updater
+    await handleUpdateCourse(modules);
   };
 
   const contextValue = {
@@ -161,11 +265,14 @@ function ContentSection() {
     setActiveModuleId,
     updateArticleContent: handleUpdateArticleContent,
     openModal: () => setIsModalOpen(true),
-    handleSaveChanges
+    handleSaveChanges,
+    handleDeleteChapter,
   };
 
   return (
     <AppContext.Provider value={contextValue}>
+      {isLoading && <FullScreenLoader text={loadingText} />}
+      
       <div className="min-h-screen bg-gray-50">
         {currentView === 'modules' ? <ModulesView /> : <ArticleView />}
         {isModalOpen && (
@@ -182,7 +289,7 @@ function ContentSection() {
 
 // ==================== MODULES VIEW COMPONENTS ====================
 function ModulesView() {
-  const { modules, activeModuleId, openModal } = useAppContext();
+  const { modules, activeModuleId, setActiveModuleId, openModal } = useAppContext();
   const activeModule = modules.find(m => m.id === activeModuleId);
 
   return (
@@ -194,7 +301,7 @@ function ModulesView() {
             <div>
               <h1 className="text-sm text-gray-500 mb-2">MODULE {modules.findIndex(m => m.id === activeModuleId) + 1}</h1>
               <h2 className="text-4xl font-bold text-gray-900">
-                {activeModule?.title || 'Select a Module'}
+                {activeModule?.moduleTitle || 'Select a Module'}
               </h2>
             </div>
             <button
@@ -209,7 +316,7 @@ function ModulesView() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {activeModule?.chapters?.length > 0 ? (
                 activeModule.chapters.map((chapter) => (
-                    <ChapterCard key={chapter.id} chapter={chapter} />
+                    <ChapterCard key={chapter.id || chapter.title} chapter={chapter} moduleId={activeModule.id} />
                 ))
             ) : (
                 <div className="col-span-full text-center py-10 text-gray-500">
@@ -251,40 +358,53 @@ function ModuleSidebar() {
   );
 }
 
-function ChapterCard({ chapter }) {
-  const { setCurrentView, setSelectedArticle } = useAppContext();
+function ChapterCard({ chapter, moduleId }) {
+  const { setCurrentView, setSelectedArticle, handleDeleteChapter } = useAppContext();
 
   const handleChapterClick = () => {
     if (chapter.article) {
       setSelectedArticle(chapter.article);
       setCurrentView('article');
     } else {
-        alert("This chapter has no article to view.");
+        alert("This chapter has no article to view. You can add one in the editor.");
     }
   };
 
+  const onDeleteClick = (e) => {
+    e.stopPropagation();
+    handleDeleteChapter(moduleId, chapter.id);
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
-      <div className={`${chapter.color || 'bg-gray-300'} h-48 flex items-center justify-center`}>
-        <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center">
-          <Book className="w-8 h-8 text-white" />
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow group relative">
+      <button
+        onClick={onDeleteClick}
+        className="absolute top-3 right-3 z-10 p-2 bg-white/60 backdrop-blur-sm rounded-full text-red-600 hover:bg-red-100 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-all duration-200"
+        title="Delete Chapter"
+      >
+        <Trash2 className="w-4 h-4" />
+      </button>
+
+      <div onClick={handleChapterClick} className="cursor-pointer">
+        <div className={`${chapter.color || 'bg-gray-300'} h-48 flex items-center justify-center`}>
+          <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center">
+            <Book className="w-8 h-8 text-white" />
+          </div>
         </div>
-      </div>
-      <div className="p-6">
-        <h3 className="text-sm font-semibold text-gray-500 mb-2">{chapter.title}</h3>
-        <p className="text-gray-700 text-sm mb-4 line-clamp-3">{chapter.description}</p>
-        <button 
-          onClick={handleChapterClick}
-          className={`text-sm font-medium flex items-center ${
-            chapter.article 
-              ? 'text-blue-600 hover:text-blue-700' 
-              : 'text-gray-400 cursor-not-allowed'
-          }`}
-          disabled={!chapter.article}
-        >
-          {chapter.article ? 'VIEW FULL COURSE' : 'NO ARTICLE'}
-          {chapter.article && <span className="ml-2">→</span>}
-        </button>
+        <div className="p-6">
+          <h3 className="text-sm font-semibold text-gray-500 mb-2">{chapter.title}</h3>
+          <p className="text-gray-700 text-sm mb-4 line-clamp-3">{chapter.description}</p>
+          <div 
+            className={`text-sm font-medium flex items-center ${
+              chapter.article 
+                ? 'text-blue-600 group-hover:text-blue-700' 
+                : 'text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            {chapter.article ? 'VIEW ARTICLE' : 'NO ARTICLE'}
+            {chapter.article && <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -317,8 +437,17 @@ function ArticleView() {
 
   if (!selectedArticle) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-gray-500">No article selected or something went wrong.</p>
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center text-center">
+        <Book className="w-16 h-16 text-gray-300 mb-4"/>
+        <h2 className="text-xl font-semibold text-gray-700">No Article Selected</h2>
+        <p className="text-gray-500 max-w-sm mt-2">The selected chapter does not have an article associated with it yet. Please go back and select a chapter with an article to view it.</p>
+        <button
+            onClick={() => setCurrentView('modules')}
+            className="mt-6 flex items-center text-white bg-blue-600 hover:bg-blue-700 transition-colors px-4 py-2 rounded-lg"
+        >
+            <ChevronLeft className="w-5 h-5 mr-2" />
+            Back to Modules
+        </button>
       </div>
     );
   }
@@ -356,14 +485,14 @@ function ArticleView() {
       <div 
         ref={contentRef}
         className="max-w-4xl mx-auto px-4 py-8 overflow-y-auto"
-        style={{ maxHeight: 'calc(100vh - 200px)' }}
+        style={{ maxHeight: 'calc(100vh - 120px)' }} // Adjusted height
       >
         <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
           {selectedArticle.title}
         </h1>
         <div className="mb-8">
           <img 
-            src={selectedArticle.image?.imageUrl || 'https://placehold.co/800x400/e2e8f0/e2e8f0'} 
+            src={selectedArticle.image?.imageUrl || 'https://placehold.co/800x400/e2e8f0/e2e8f0?text=Article+Image'} 
             alt="Article" 
             className="w-full h-96 object-cover rounded-lg shadow-sm"
           />
@@ -403,6 +532,10 @@ function PremiumTextEditor({ article }) {
       setBlocks(initialBlocks.length > 0 ? initialBlocks : [
         { id: `block-${article.id}-0`, type: BLOCK_TYPES.PARAGRAPH, content: '', placeholder: 'Start writing...' }
       ]);
+    } else {
+       setBlocks([
+        { id: `block-${article.id}-0`, type: BLOCK_TYPES.PARAGRAPH, content: '', placeholder: 'Start writing...' }
+      ]);
     }
   }, [article]);
 
@@ -428,9 +561,12 @@ function PremiumTextEditor({ article }) {
       return newBlocks;
     });
     setTimeout(() => {
-      document.querySelector(`[data-block-id="${newBlock.id}"]`)?.focus();
-      setFocusedBlockId(newBlock.id);
-    }, 0);
+      const newEl = document.querySelector(`[data-block-id="${newBlock.id}"]`);
+      if (newEl) {
+        newEl.focus();
+        setFocusedBlockId(newBlock.id);
+      }
+    }, 50);
   }, [saveToArticle]);
 
   const updateBlock = useCallback((id, content) => {
@@ -466,7 +602,7 @@ function PremiumTextEditor({ article }) {
 
   const handlePlusClick = useCallback((blockId, event) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    setBlockMenuPosition({ x: rect.right + 10, y: rect.top });
+    setBlockMenuPosition({ x: rect.left - 330, y: rect.top });
     setSelectedBlockId(blockId);
     setShowBlockMenu(true);
   }, []);
@@ -518,13 +654,13 @@ function PremiumTextEditor({ article }) {
         <BlockMenu
           position={blockMenuPosition}
           onSelectType={(type) => {
+            setShowBlockMenu(false);
             if (type === 'image' || type === 'video') {
               insertMedia(type);
             } else {
-              addBlock(selectedBlockId, type);
+              changeBlockType(selectedBlockId, type);
             }
           }}
-          onChangeType={(type) => changeBlockType(selectedBlockId, type)}
           onDelete={() => deleteBlock(selectedBlockId)}
           onClose={() => setShowBlockMenu(false)}
         />
@@ -589,7 +725,7 @@ function BlockComponent({ block, isFocused, onFocus, onBlur, onUpdate, onAddBloc
       onBlur,
       onKeyDown: handleKeyDown,
       onMouseUp: handleMouseUp,
-      className: `focus:outline-none w-full ${isFocused ? 'ring-2 ring-blue-200 ring-opacity-50 rounded' : ''}`,
+      className: `focus:outline-none w-full relative`,
       style: { minHeight: '1.5rem' },
       'data-placeholder': block.placeholder
     };
@@ -602,7 +738,7 @@ function BlockComponent({ block, isFocused, onFocus, onBlur, onUpdate, onAddBloc
       case BLOCK_TYPES.CODE: return <pre {...commonProps} className={`${commonProps.className} bg-gray-100 rounded-lg p-4 font-mono text-sm overflow-x-auto border`} />;
       case BLOCK_TYPES.BULLETED_LIST: return <div className="flex items-start py-1"><span className="text-gray-400 mt-2 mr-3">•</span><div {...commonProps} className={`${commonProps.className} flex-1 py-1`} /></div>;
       case BLOCK_TYPES.NUMBERED_LIST: return <div className="flex items-start py-1"><span className="text-gray-400 mt-2 mr-3">1.</span><div {...commonProps} className={`${commonProps.className} flex-1 py-1`} /></div>;
-      case BLOCK_TYPES.IMAGE: return <div className="py-4"><img src={block.content || '/api/placeholder/600/300'} alt="Content" className="w-full h-auto rounded-lg border shadow-sm" /></div>;
+      case BLOCK_TYPES.IMAGE: return <div className="py-4"><img src={block.content || 'https://placehold.co/600x300/e2e8f0/e2e8f0?text=Image'} alt="Content" className="w-full h-auto rounded-lg border shadow-sm" /></div>;
       case BLOCK_TYPES.VIDEO: return <div className="py-4"><video src={block.content} controls className="w-full h-auto rounded-lg border shadow-sm" /></div>;
       default: return <p {...commonProps} className={`${commonProps.className} py-2 text-gray-800 leading-relaxed`} />;
     }
@@ -610,10 +746,9 @@ function BlockComponent({ block, isFocused, onFocus, onBlur, onUpdate, onAddBloc
 
   return (
     <div className="group relative" onMouseEnter={() => setShowControls(true)} onMouseLeave={() => setShowControls(false)}>
-      {showControls && (
-        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-12 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={(e) => onPlusClick(block.id, e)} className="w-8 h-8 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center hover:border-gray-300 transition-colors" title="Add block"><Plus className="w-4 h-4 text-gray-500" /></button>
-          <button className="w-8 h-8 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center hover:border-gray-300 transition-colors cursor-grab" title="Drag to move"><GripVertical className="w-4 h-4 text-gray-500" /></button>
+      {isFocused && (
+        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-12 flex items-center space-x-1 opacity-100 transition-opacity">
+          <button onClick={(e) => onPlusClick(block.id, e)} className="p-1 rounded-md hover:bg-gray-200" title="Change block type"><GripVertical className="w-5 h-5 text-gray-500" /></button>
         </div>
       )}
       {renderBlock()}
@@ -631,7 +766,7 @@ function BlockComponent({ block, isFocused, onFocus, onBlur, onUpdate, onAddBloc
   );
 }
 
-function BlockMenu({ position, onSelectType, onChangeType, onDelete, onClose }) {
+function BlockMenu({ position, onSelectType, onDelete, onClose }) {
   const blockTypes = [
     { type: BLOCK_TYPES.PARAGRAPH, icon: Type, label: 'Text', shortcut: '' },
     { type: BLOCK_TYPES.HEADING_1, icon: Heading1, label: 'Heading 1', shortcut: '# + space' },
@@ -655,7 +790,7 @@ function BlockMenu({ position, onSelectType, onChangeType, onDelete, onClose }) 
 
   return (
     <div className="block-menu fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-2 w-80" style={{ left: position.x, top: position.y }}>
-      <div className="px-3 pb-2"><h3 className="text-sm font-semibold text-gray-700">Add Block</h3></div>
+      <div className="px-3 pb-2"><h3 className="text-sm font-semibold text-gray-700">Change Block Type</h3></div>
       <div className="max-h-96 overflow-y-auto">
         {blockTypes.map((blockType) => (
           <button key={blockType.type} onClick={() => onSelectType(blockType.type)} className="w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center space-x-3 transition-colors">

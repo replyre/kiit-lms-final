@@ -255,25 +255,14 @@ const CourseDetails = () => {
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className=" mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo on Left */}
-            <div
-              className="flex items-center"
-              onClick={() => setSelectedOption("Home")}
-            >
-              <div className="flex-shrink-0">
-                <img
-                  className="h-12 w-auto"
-                  src="/DhammName.png"
-                  alt="Dhamm Nexus"
-                />
-              </div>
-            </div>
+          <div className="flex justify-end items-center h-16">
+          
+           
 
             {/* Profile and Logout on Right */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 relative z-[1000]">
               <abbr title="Announcements">
-                <button className="p-2  rounded-full  hover:bg-primary/20 transition-colors  text-secondary hover:text-primary">
+                <button className="p-2  rounded-full  hover:bg-primary/20 transition-colors  text-primary/70 hover:text-primary">
                   <TfiAnnouncement
                     onClick={() => setSelectedOption("Announcements")}
                   />
@@ -294,21 +283,21 @@ const CourseDetails = () => {
       </header>
  <Link to={"/its"} className="fixed h-16 w-16 bg-white border-black border-2 rounded  top-[60%] z-100 flex flex-col items-center justify-center"><Si1Panel className=" h-8 w-8  " /> ITS</Link>
       {/* Course Banner */}
-      <div className="relative h-64 overflow-hidden">
+      <div className="flex h-fit w-[90%] m-auto pt-4">
         
         <img
           src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=2340&q=80"
           alt={course.name}
-          className="w-full h-full object-cover"
+          className="w-[50%] h-[350px] object-cover rounded-lg"
         />
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center">
+        <div className=" inset-0  flex items-center">
           <div className="container mx-auto px-6">
-            <h1 className="text-4xl font-bold text-white">{course.title}</h1>
-            <p className="text-xl text-gray-200 mt-2">
+            <h1 className="text-4xl font-bold text-primary">{course.title}</h1>
+            <p className="text-xl text-primary/60 mt-2">
               {course.teacher?.name || "Unknown Instructor"}
             </p>
           </div>
-          <button className="flex justify-center items-center gap-2 absolute bottom-3 right-2 text-lg px-6 py-2 bg-primary/80 text-white rounded-lg hover:bg-primary transition-colors">
+          <button className="flex justify-center items-center gap-2 bottom-[50%] absolute  right-8 text-lg px-6 py-2 bg-primary/80 text-white rounded-lg hover:bg-primary transition-colors">
             <MdLiveTv />
             Join Live Class
           </button>
@@ -316,7 +305,7 @@ const CourseDetails = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="bg-white shadow-sm sticky top-0 z-40">
+      <nav className="bg-white shadow-sm fixed w-full top-0 z-40">
         <button
           onClick={() => navigate(-1)}
           className="absolute left-6 top-3 z-10 border border-black flex items-center space-x-2 px-4 py-2 bg-white/20 rounded-lg text-white hover:bg-gray-200 hover:text-black hover:shadow-md transition-all"

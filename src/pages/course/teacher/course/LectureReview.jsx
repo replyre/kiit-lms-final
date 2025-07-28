@@ -3,7 +3,6 @@ import {
   Edit,
   Video,
   Check,
-  AlertCircle,
   X,
   ChevronDown,
   ChevronRight,
@@ -36,9 +35,11 @@ const LectureReview = () => {
 
   useEffect(() => {
     // Expand all modules by default
-    if (course?.modules) {
+    // UPDATED: Changed course.modules to course.syllabus.modules
+    if (course?.syllabus?.modules) {
       const initialExpanded = {};
-      course.modules.forEach((module) => {
+      // UPDATED: Changed course.modules to course.syllabus.modules
+      course.syllabus.modules.forEach((module) => {
         if (module.lectures && module.lectures.length > 0) {
           initialExpanded[module._id] = true;
         }
@@ -97,7 +98,8 @@ const LectureReview = () => {
     }));
   };
 
-  if (!course || !course.modules) {
+  // UPDATED: Adjusted loading check for the new data structure
+  if (!course || !course.syllabus || !course.syllabus.modules) {
     return (
       <div className="w-full max-w-7xl mx-auto p-4 flex justify-center items-center min-h-screen">
         <div className="text-lg text-gray-600">
@@ -107,7 +109,8 @@ const LectureReview = () => {
     );
   }
 
-  const modulesWithLectures = course.modules.filter(
+  // UPDATED: Changed course.modules to course.syllabus.modules
+  const modulesWithLectures = course.syllabus.modules.filter(
     (module) => module.lectures && module.lectures.length > 0
   );
 
@@ -137,7 +140,8 @@ const LectureReview = () => {
       )}
 
       <div className="space-y-6">
-        {course.modules.map((module) => {
+        {/* UPDATED: Changed course.modules to course.syllabus.modules */}
+        {course.syllabus.modules.map((module) => {
           const hasLectures = module.lectures && module.lectures.length > 0;
           if (!hasLectures) return null;
 
@@ -297,6 +301,7 @@ const LectureReview = () => {
   );
 };
 
+// No changes needed for LectureCard as it receives props correctly.
 const LectureCard = ({
   lecture,
   index,

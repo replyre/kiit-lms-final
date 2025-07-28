@@ -14,7 +14,6 @@ import {
   Users,
   BookOpen,
   Megaphone,
-  PlusCircle,
   ExternalLink,
   ArrowRight,
 } from "lucide-react";

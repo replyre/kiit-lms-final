@@ -46,9 +46,9 @@ export default function LecturePanel() {
   const noteAppRef = useRef(null);
 
   useEffect(() => {
-    // Set first lecture of first module with lectures as selected
-    if (course?.modules) {
-      const firstModuleWithLectures = course.modules.find(
+    // Set first lecture of first module as selected
+    if (course?.syllabus?.modules) {
+      const firstModuleWithLectures = course.syllabus.modules.find(
         (module) => module.lectures && module.lectures.length > 0
       );
       if (firstModuleWithLectures) {
@@ -94,7 +94,8 @@ export default function LecturePanel() {
     };
   }, [showNotes]);
 
-  if (!course || !course.modules) {
+  // Updated to check for course.syllabus.modules
+  if (!course || !course.syllabus || !course.syllabus.modules) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
@@ -102,7 +103,8 @@ export default function LecturePanel() {
     );
   }
 
-  const modulesWithLectures = course.modules.filter(
+  // Updated to filter course.syllabus.modules
+  const modulesWithLectures = course.syllabus.modules.filter(
     (module) => module.lectures && module.lectures.length > 0
   );
 
@@ -132,7 +134,8 @@ export default function LecturePanel() {
           </h2>
 
           <div className="space-y-2">
-            {course.modules.map((module) => (
+            {/* Updated to map over course.syllabus.modules */}
+            {course.syllabus.modules.map((module) => (
               <div key={module._id} className="border rounded-lg">
                 <button
                   onClick={() => toggleModule(module._id)}
