@@ -12,7 +12,22 @@ const semesters = [
   { name: "Semester 5", accessible: false },
   { name: "Semester 6", accessible: false },
 ];
+function calculateSemesterWeeks(startDate, endDate) {
+  // 1. Create Date objects from the input strings
+  const start = new Date(startDate);
+  const end = new Date(endDate);
 
+  // 2. Calculate the difference in milliseconds
+  const diffInMs = end.getTime() - start.getTime();
+
+  // 3. Define the number of milliseconds in one week
+  const msInOneWeek = 1000 * 60 * 60 * 24 * 7;
+
+  // 4. Divide the total milliseconds by milliseconds in a week and round up
+  const numberOfWeeks = Math.ceil(diffInMs / msInOneWeek);
+
+  return numberOfWeeks;
+}
 const courseImages = [
   "https://thumbs.dreamstime.com/b/businessman-looking-dice-sketch-thoughtful-chalkboard-connected-game-probability-theory-73451825.jpg",
   "https://i.ytimg.com/vi/96bNsQgv10A/maxresdefault.jpg",
@@ -184,25 +199,12 @@ const Courseware = () => {
                           </div>
                           <div className="flex items-center text-sm text-gray-500">
                             <Clock className="h-4 w-4 mr-1" />
-                            <span>7 weeks</span>
+                            <span>{calculateSemesterWeeks(course.semester.startDate,course.semester.endDate)} weeks</span>
                           </div>
                         </div>
 
                         {/* Progress Bar */}
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-500">Progress</span>
-                            <span className="font-medium text-gray-700">
-                              {course.lectureCount}/4 lectures
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(course.lectureCount)}`}
-                              style={{width: `${(course.lectureCount / 4) * 100}%`}}
-                            />
-                          </div>
-                        </div>
+                     
 
                         {/* Semester Dates */}
                         <div className="flex items-center text-xs text-gray-500 pt-2 border-t border-gray-100">

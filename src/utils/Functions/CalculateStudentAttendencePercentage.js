@@ -23,7 +23,7 @@ function calculateAttendance(studentId, coursesData) {
   // Process each course
   coursesData.forEach((course) => {
     const courseName = course.title;
-    const attendance = course.attendance;
+    const attendance = course.attendance; // This can be undefined
 
     // Initialize course statistics
     result.attendanceByCourse[courseName] = {
@@ -33,33 +33,39 @@ function calculateAttendance(studentId, coursesData) {
       sessionDates: [],
     };
 
-    // Count only non-empty sessions
-    Object.entries(attendance).forEach(([sessionKey, students]) => {
-      if (students.length > 0) {
-        // This is a valid session with at least one student present
-        result.attendanceByCourse[courseName].totalSessions++;
-        totalSessionsCount++;
+    // --- FIX STARTS HERE ---
+    // Process attendance only if it exists for the course
+    if (attendance && typeof attendance === 'object') {
+      // Count only non-empty sessions
+      Object.entries(attendance).forEach(([sessionKey, students]) => {
+        // The 'students' array can be null or not an array, so check it
+        if (Array.isArray(students) && students.length > 0) {
+          // This is a valid session with at least one student present
+          result.attendanceByCourse[courseName].totalSessions++;
+          totalSessionsCount++;
 
-        // Check if this student was present
-        if (students.includes(studentId)) {
-          result.attendanceByCourse[courseName].presentCount++;
-          totalPresentCount++;
+          // Check if this student was present
+          if (students.includes(studentId)) {
+            result.attendanceByCourse[courseName].presentCount++;
+            totalPresentCount++;
 
-          // Add this date to the list of dates attended
-          const dateValue = sessionKey.split("_")[0]; // Extract date part
-          result.attendanceByCourse[courseName].sessionDates.push(dateValue);
+            // Add this date to the list of dates attended
+            const dateValue = sessionKey.split("_")[0]; // Extract date part
+            result.attendanceByCourse[courseName].sessionDates.push(dateValue);
+          }
         }
-      }
-    });
+      });
 
-    // Calculate percentage for this course
-    const sessionCount = result.attendanceByCourse[courseName].totalSessions;
-    if (sessionCount > 0) {
-      result.attendanceByCourse[courseName].attendancePercentage = (
-        (result.attendanceByCourse[courseName].presentCount / sessionCount) *
-        100
-      ).toFixed(2);
+      // Calculate percentage for this course
+      const sessionCount = result.attendanceByCourse[courseName].totalSessions;
+      if (sessionCount > 0) {
+        result.attendanceByCourse[courseName].attendancePercentage = (
+          (result.attendanceByCourse[courseName].presentCount / sessionCount) *
+          100
+        ).toFixed(2);
+      }
     }
+    // --- FIX ENDS HERE ---
   });
 
   // Calculate overall attendance percentage
