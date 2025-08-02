@@ -17,6 +17,9 @@ import {
   Monitor,
   Home,
 } from "lucide-react";
+import { useMemo } from "react";
+
+import { MdLiveTv } from "react-icons/md";
 import { VscCommentDiscussion, VscLiveShare } from "react-icons/vsc";
 import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 import { getCoursesById } from "../../../services/course.service";
@@ -46,7 +49,7 @@ import { useAuth } from "../../../context/AuthContext";
 import ProfileDropdown from "../../../utils/ProfileDropDown";
 import AllActivities from "../../Activity/teacher/AllActivities";
 import BlogCreator from "./course/Blog/BlogCreator";
-
+import { useMeeting } from "../../../context/MeetingContext";
 const CourseManagement = () => {
   const [selectedOption, setSelectedOption] = useState("Home");
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -62,6 +65,39 @@ const CourseManagement = () => {
     navigate("/login");
   };
   // Get context to update it
+
+  // Get meetings data from the context
+  const { meetings } = useMeeting();
+
+  // Check for a currently live meeting for THIS specific course
+// This logic makes the button active based on the exact time in the API string
+  const liveMeeting = useMemo(() => {
+    if (!meetings || !courseID) return null;
+    
+    const now = new Date();
+
+    return meetings.find(meeting => {
+      const isForThisCourse = meeting.courseId === courseID;
+      if (!isForThisCourse) return false;
+
+      // This logic strips the 'Z' (UTC marker) from the API's time string.
+      // It forces JavaScript to read "13:01" as "1:01 PM" in your local time.
+      const startTime = new Date(meeting.start.slice(0, -1));
+      const endTime = new Date(meeting.end.slice(0, -1));
+      
+      // The button will now be active if the current time is between the local start and end times.
+      return now >= startTime && now <= endTime;
+    });
+  }, [meetings, courseID]);
+
+  // Create the handler function for the button
+  const handleJoinLiveClass = () => {
+    if (liveMeeting) {
+      window.open(liveMeeting.link, '_blank', 'noopener,noreferrer');
+    } else {
+      alert("There is no live class to join at the moment.");
+    }
+  };
   const { courseData, setCourseData } = useCourse();
 
   // Function to extract course ID from URL path
@@ -338,7 +374,18 @@ const CourseManagement = () => {
           </div>
         </div>
       </header>
-
+{liveMeeting && <button
+    onClick={handleJoinLiveClass}
+    className="flex justify-center items-center gap-2 bottom-[40%] absolute  right-8 text-lg px-6 py-2 bg-primary/80 text-white rounded-lg hover:bg-primary transition-colors">
+    <MdLiveTv />
+    Join Live Class
+</button>}
+{!liveMeeting && <button
+    onClick={handleJoinLiveClass}
+    className="flex justify-center items-center gap-2 bottom-[40%] absolute  right-8 text-lg px-6 py-2 cursor-not-allowed bg-primary/20 text-gray-400 rounded-lg hover:bg-primary transition-colors">
+    <MdLiveTv />
+    No Live Class
+</button>}
       {/* Course Header Banner */}
        <div className="flex justify-center w-full gap-10 overflow-hidden m-4">
         <img

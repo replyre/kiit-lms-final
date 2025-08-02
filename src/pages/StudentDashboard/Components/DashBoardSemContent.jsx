@@ -19,8 +19,6 @@ import {
 import toast from "react-hot-toast";
 import { getAllCourses } from "../../../services/course.service";
 import calculateAttendance from "../../../utils/Functions/CalculateStudentAttendencePercentage";
-import { useAuth } from "../../../context/AuthContext";
-import { useCourse } from "../../../context/CourseContext";
 import AssignmentStatusChart from "./AssignmentStatusChart";
 
 const DashboardSemesterContent = ({ setActiveSection }) => {

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useCourse } from "../../../../context/CourseContext"; // Assuming the same path
 import {
   ChevronUp,
   ChevronDown,
@@ -8,82 +9,28 @@ import {
 } from "lucide-react";
 
 const StudentTable = () => {
+  const { courseData } = useCourse();
+  const [data, setData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({
-    key: "slNo",
+    key: "name", // Default sort by name
     direction: "asc",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // Dummy data
-  const initialData = [
-    {
-      slNo: 1,
-      rollNo: "2024001",
-      name: "John Smith",
-      mobile: "9876543210",
-      email: "john.smith@example.com",
-      currentSemester: 1,
-      associatedCompany: "Tech Corp",
-    },
-    {
-      slNo: 2,
-      rollNo: "2024002",
-      name: "Emma Wilson",
-      mobile: "9876543211",
-      email: "emma.wilson@example.com",
-      currentSemester: 1,
-      associatedCompany: "Data Systems",
-    },
-    {
-      slNo: 3,
-      rollNo: "2024003",
-      name: "Michael Brown",
-      mobile: "9876543212",
-      email: "michael.b@example.com",
-      currentSemester: 1,
-      associatedCompany: "Innovation Labs",
-    },
-    {
-      slNo: 4,
-      rollNo: "2024004",
-      name: "Sarah Davis",
-      mobile: "9876543213",
-      email: "sarah.d@example.com",
-      currentSemester: 1,
-      associatedCompany: "Future Tech",
-    },
-    {
-      slNo: 5,
-      rollNo: "2024005",
-      name: "James Wilson",
-      mobile: "9876543214",
-      email: "james.w@example.com",
-      currentSemester: 1,
-      associatedCompany: "Smart Solutions",
-    },
-    {
-      slNo: 6,
-      rollNo: "2024006",
-      name: "Lisa Anderson",
-      mobile: "9876543215",
-      email: "lisa.a@example.com",
-      currentSemester: 1,
-      associatedCompany: "Digital Dynamics",
-    },
-    {
-      slNo: 7,
-      rollNo: "2024007",
-      name: "Robert Taylor",
-      mobile: "9876543216",
-      email: "robert.t@example.com",
-      currentSemester: 1,
-      associatedCompany: "Cloud Systems",
-    },
-  ];
-
-  const [data, setData] = useState(initialData);
+  // Effect to load and sort data from context
+  useEffect(() => {
+    if (courseData?.students) {
+      // Sort initial data based on the default sortConfig
+      const sortedInitialData = [...courseData.students].sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) return -1;
+        if (a[sortConfig.key] > b[sortConfig.key]) return 1;
+        return 0;
+      });
+      setData(sortedInitialData);
+    }
+  }, [courseData?.students]); // Rerun when student data changes
 
   // Sorting function
   const requestSort = (key) => {
@@ -117,27 +64,29 @@ const StudentTable = () => {
   // Column headers with sorting
   const SortableHeader = ({ label, sortKey }) => (
     <th
-      className="px-4 py-3 cursor-pointer hover:bg-emerald-600 transition-colors"
+      className="px-4 py-3 cursor-pointer hover:bg-accent1/60 transition-colors"
       onClick={() => requestSort(sortKey)}
     >
       <div className="flex items-center space-x-1">
         <span>{label}</span>
-        <div className="flex flex-col">
-          <ChevronUp
-            className={`w-4 h-4 ${
-              sortConfig.key === sortKey && sortConfig.direction === "asc"
-                ? "text-white"
-                : "text-emerald-200"
-            }`}
-          />
-          <ChevronDown
-            className={`w-4 h-4 ${
-              sortConfig.key === sortKey && sortConfig.direction === "desc"
-                ? "text-white"
-                : "text-emerald-200"
-            }`}
-          />
-        </div>
+        {sortConfig.key === sortKey && (
+          <div className="flex flex-col">
+            <ChevronUp
+              className={`w-4 h-4 ${
+                sortConfig.direction === "asc"
+                  ? "text-white"
+                  : "text-emerald-200"
+              }`}
+            />
+            <ChevronDown
+              className={`w-4 h-4 ${
+                sortConfig.direction === "desc"
+                  ? "text-white"
+                  : "text-emerald-200"
+              }`}
+            />
+          </div>
+        )}
       </div>
     </th>
   );
@@ -151,7 +100,7 @@ const StudentTable = () => {
         </div>
         <input
           type="text"
-          placeholder="Search..."
+          placeholder="Search students..."
           className="pl-10 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -161,33 +110,23 @@ const StudentTable = () => {
       {/* Table */}
       <div className="overflow-x-auto border border-gray-200 rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-emerald-500 text-white">
+          <thead className="bg-accent2 text-white">
             <tr>
-              <SortableHeader label="Sl. No." sortKey="slNo" />
+              <th className="px-4 py-3">Sl. No.</th>
               <SortableHeader label="Roll No." sortKey="rollNo" />
               <SortableHeader label="Name" sortKey="name" />
-              <SortableHeader label="Mobile" sortKey="mobile" />
               <SortableHeader label="Email" sortKey="email" />
-              <SortableHeader
-                label="Current Semester"
-                sortKey="currentSemester"
-              />
-              <SortableHeader
-                label="Associated Company"
-                sortKey="associatedCompany"
-              />
+              <SortableHeader label="Program" sortKey="program" />
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {currentItems.map((item) => (
-              <tr key={item.slNo} className="hover:bg-gray-50">
-                <td className="px-4 py-3">{item.slNo}</td>
+            {currentItems.map((item, index) => (
+              <tr key={item.id} className="hover:bg-gray-50">
+                <td className="px-4 py-3 text-center">{indexOfFirstItem + index + 1}</td>
                 <td className="px-4 py-3">{item.rollNo}</td>
                 <td className="px-4 py-3">{item.name}</td>
-                <td className="px-4 py-3">{item.mobile}</td>
                 <td className="px-4 py-3">{item.email}</td>
-                <td className="px-4 py-3">{item.currentSemester}</td>
-                <td className="px-4 py-3">{item.associatedCompany}</td>
+                <td className="px-4 py-3">{item.program}</td>
               </tr>
             ))}
           </tbody>
@@ -197,7 +136,7 @@ const StudentTable = () => {
       {/* Pagination */}
       <div className="mt-4 flex items-center justify-between">
         <div className="text-sm text-gray-700">
-          Showing {indexOfFirstItem + 1} to{" "}
+          Showing {filteredData.length > 0 ? indexOfFirstItem + 1 : 0} to{" "}
           {Math.min(indexOfLastItem, filteredData.length)} of{" "}
           {filteredData.length} entries
         </div>
@@ -213,7 +152,7 @@ const StudentTable = () => {
             onClick={() =>
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
-            disabled={currentPage === totalPages}
+            disabled={currentPage === totalPages || totalPages === 0}
             className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronRight className="w-5 h-5" />

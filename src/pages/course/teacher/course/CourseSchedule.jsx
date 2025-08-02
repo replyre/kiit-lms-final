@@ -71,7 +71,7 @@ const CourseSchedule = () => {
       {/* Header Section */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-secondary">Course Schedule</h1>
+          <h1 className="text-3xl font-bold text-primary">Course Schedule</h1>
           <p className="text-tertiary mt-1">
             Manage important dates and class timings
           </p>
@@ -86,7 +86,7 @@ const CourseSchedule = () => {
             <div className="p-6 border-b border-tertiary/10">
               <div className="flex items-center space-x-3">
                 <CalendarCheck className="w-6 h-6 text-primary" />
-                <h2 className="text-xl font-semibold text-secondary">
+                <h2 className="text-xl font-semibold text-primary">
                   Important Dates
                 </h2>
               </div>
@@ -107,7 +107,7 @@ const CourseSchedule = () => {
                     onChange={(e) =>
                       handleDateChange("classStartDate", e.target.value)
                     }
-                    className="w-full bg-transparent focus:outline-none text-secondary"
+                    className="w-full bg-transparent focus:outline-none text-primary"
                   />
                 </div>
               </div>
@@ -126,7 +126,7 @@ const CourseSchedule = () => {
                     onChange={(e) =>
                       handleDateChange("classEndDate", e.target.value)
                     }
-                    className="w-full bg-transparent focus:outline-none text-secondary"
+                    className="w-full bg-transparent focus:outline-none text-primary"
                   />
                 </div>
               </div>
@@ -145,7 +145,7 @@ const CourseSchedule = () => {
                     onChange={(e) =>
                       handleDateChange("midSemesterExamDate", e.target.value)
                     }
-                    className="w-full bg-transparent focus:outline-none text-secondary"
+                    className="w-full bg-transparent focus:outline-none text-primary"
                   />
                 </div>
               </div>
@@ -164,7 +164,7 @@ const CourseSchedule = () => {
                     onChange={(e) =>
                       handleDateChange("endSemesterExamDate", e.target.value)
                     }
-                    className="w-full bg-transparent focus:outline-none text-secondary"
+                    className="w-full bg-transparent focus:outline-none text-primary"
                   />
                 </div>
               </div>
@@ -178,7 +178,7 @@ const CourseSchedule = () => {
             <div className="p-6 border-b border-tertiary/10">
               <div className="flex items-center space-x-3">
                 <AlarmClock className="w-6 h-6 text-primary" />
-                <h2 className="text-xl font-semibold text-secondary">
+                <h2 className="text-xl font-semibold text-primary">
                   Class Days and Timing
                 </h2>
               </div>
@@ -203,7 +203,7 @@ const CourseSchedule = () => {
                           >
                             <span className="font-medium">{schedule.day}</span>
                           </div>
-                          <div className="flex items-center text-secondary">
+                          <div className="flex items-center text-primary">
                             <Clock className="w-4 h-4 mr-2 text-primary/70" />
                             <span>{schedule.time}</span>
                           </div>
@@ -231,7 +231,7 @@ const CourseSchedule = () => {
 
                 {isAddingTime ? (
                   <div className="p-5 bg-gray-50 rounded-xl border border-tertiary/20 space-y-4">
-                    <h3 className="font-medium text-secondary">
+                    <h3 className="font-medium text-primary">
                       Add New Class Time
                     </h3>
 
@@ -245,7 +245,7 @@ const CourseSchedule = () => {
                           onChange={(e) => setNewDay(e.target.value)}
                           className="w-full p-3 rounded-lg border border-tertiary/20 
                             focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50
-                            text-secondary bg-white transition-all duration-200"
+                            text-primary bg-white transition-all duration-200"
                         >
                           <option value="">Select Day</option>
                           <option value="Monday">Monday</option>
@@ -269,7 +269,7 @@ const CourseSchedule = () => {
                           placeholder="e.g., 6 pm to 7.30 pm"
                           className="w-full p-3 rounded-lg border border-tertiary/20 
                             focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50
-                            text-secondary placeholder-tertiary/50 transition-all duration-200"
+                            text-primary placeholder-tertiary/50 transition-all duration-200"
                         />
                       </div>
                     </div>
@@ -316,7 +316,7 @@ const CourseSchedule = () => {
       <div className="flex items-start p-5 rounded-xl bg-primary/5 border border-primary/20 mt-6">
         <AlertCircle className="w-6 h-6 text-primary mt-0.5 mr-4 flex-shrink-0" />
         <div>
-          <p className="text-secondary font-medium mb-1">Scheduling Tips</p>
+          <p className="text-primary font-medium mb-1">Scheduling Tips</p>
           <p className="text-tertiary">
             Make sure to keep your class schedule up to date. Students will be
             notified automatically of any changes to these dates.

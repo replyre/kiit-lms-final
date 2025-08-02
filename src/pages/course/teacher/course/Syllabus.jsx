@@ -9,7 +9,6 @@ import {
   FileCog,
   Library,
   Layers,
-  Circle,
 } from "lucide-react";
 import SaveButton from "../../../../utils/CourseSaveButton";
 import { useParams } from "react-router-dom";
@@ -32,6 +31,7 @@ const SyllabusManager = () => {
   });
   const [expandedModule, setExpandedModule] = useState(null);
   const { courseID } = useParams();
+
   const handleModuleTitleEdit = (moduleNumber, newTitle) => {
     updateModuleTitle(moduleNumber, newTitle);
     setEditingModule(null);
@@ -42,15 +42,18 @@ const SyllabusManager = () => {
     setEditingTopic({ moduleNumber: null, topicIndex: null });
   };
 
+  // Guard against null or undefined syllabus/modules
+  const modules = courseData?.syllabus?.modules || [];
+
   return (
-    <div className="max-w-[1600px] mx-auto space-y-8">
+    <div className="max-w-[1600px] mx-auto space-y-8 bg-gray-50">
       <div className="flex justify-between items-center absolute -top-10 right-36">
         <SaveButton urlId={courseID} />
       </div>
       {/* Header Section */}
       <div className="flex items-center   justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-secondary">Course Syllabus</h1>
+          <h1 className="text-3xl font-bold text-primary">Course Syllabus</h1>
           <p className="text-tertiary mt-1">
             Manage modules and topics for your course
           </p>
@@ -59,7 +62,7 @@ const SyllabusManager = () => {
 
       {/* Modules Grid */}
       <div className="grid grid-cols-1 gap-6">
-        {courseData.syllabus.map((module) => (
+        {modules.map((module) => (
           <div
             key={module.moduleNumber}
             className="bg-white rounded-2xl shadow-sm border border-tertiary/10 overflow-hidden transition-all duration-300 hover:shadow-md"
@@ -111,7 +114,7 @@ const SyllabusManager = () => {
                         autoFocus
                       />
                     ) : (
-                      <h3 className="text-xl font-semibold text-secondary">
+                      <h3 className="text-xl font-semibold text-primary">
                         {module.moduleTitle}
                       </h3>
                     )}
@@ -189,7 +192,7 @@ const SyllabusManager = () => {
                               autoFocus
                             />
                           ) : (
-                            <span className="text-secondary font-medium">
+                            <span className="text-primary font-medium">
                               {topic}
                             </span>
                           )}
@@ -245,10 +248,10 @@ const SyllabusManager = () => {
         ))}
       </div>
 
-      {courseData.syllabus.length === 0 && (
+      {modules.length === 0 && (
         <div className="bg-white rounded-2xl shadow-sm border border-tertiary/10 p-12 text-center">
           <Library className="w-16 h-16 text-tertiary/30 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-secondary mb-2">
+          <h3 className="text-xl font-semibold text-primary mb-2">
             No Modules Created Yet
           </h3>
           <p className="text-tertiary mb-8 max-w-md mx-auto">

@@ -29,15 +29,18 @@ import TeacherProfileSection from "./pages/TeacherDashboard/Components/TeacherPr
 import StudentProfileSection from "./pages/StudentDashboard/Components/StudentProfileSection.jsx";
 import ITS from "./pages/Its/Its.jsx";
 import StudentAssignmentSectionCourse from "./pages/Assignment/ShowAssignmentCourse.jsx";
+import { MeetingProvider } from "./context/MeetingContext.js";
 const App = () => {
   return (
     <AuthProvider>
       <UtilityProvider>
         <CourseProvider>
+          <MeetingProvider>
           <Router>
             <Layout />
           </Router>
           <Toaster position="top-right" reverseOrder={false} />
+          </MeetingProvider>
         </CourseProvider>
       </UtilityProvider>
     </AuthProvider>

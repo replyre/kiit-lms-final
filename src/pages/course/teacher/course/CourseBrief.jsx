@@ -124,7 +124,7 @@ const CourseBrief = () => {
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-3">
         {icon}
-        <h2 className="text-xl font-semibold text-secondary">{title}</h2>
+        <h2 className="text-xl font-semibold text-primary">{title}</h2>
       </div>
       {activeSection !== section && (
         <button
@@ -193,7 +193,7 @@ const CourseBrief = () => {
       ) : (
         <div
           className={`text-4xl font-bold ${
-            isTotal ? "text-primary" : "text-secondary"
+            isTotal ? "text-primary" : "text-primary"
           }`}
         >
           {value}
@@ -213,7 +213,7 @@ const CourseBrief = () => {
       {/* Header Section */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-secondary">Course Overview</h1>
+          <h1 className="text-3xl font-bold text-primary">Course Overview</h1>
           <p className="text-tertiary mt-1">
             Manage your course information and learning outcomes
           </p>
@@ -241,7 +241,7 @@ const CourseBrief = () => {
                     onChange={(e) => setTempAboutCourse(e.target.value)}
                     className="w-full min-h-[200px] p-4 rounded-xl border border-tertiary/20
                       focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200
-                      text-secondary placeholder-tertiary/50"
+                      text-primary placeholder-tertiary/50"
                     placeholder="Enter course description..."
                   />
                   {renderActionButtons("about")}
@@ -249,7 +249,7 @@ const CourseBrief = () => {
               ) : (
                 <div className="prose max-w-none">
                   <p
-                    className={`text-secondary leading-relaxed ${
+                    className={`text-primary leading-relaxed ${
                       !courseData.aboutCourse && "text-tertiary/60 italic"
                     }`}
                   >
@@ -319,7 +319,7 @@ const CourseBrief = () => {
                           {index + 1}
                         </span>
                       </div>
-                      <p className="text-secondary">{outcome}</p>
+                      <p className="text-primary">{outcome}</p>
                     </div>
                   ))}
                   {courseData.learningOutcomes.length === 0 && (

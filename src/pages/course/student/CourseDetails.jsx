@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import {
   ArrowLeft,
   ChevronDown,
@@ -13,6 +13,7 @@ import {
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { getCoursesById } from "../../../services/course.service";
 import { useCourse } from "../../../context/CourseContext";
+import { useMeeting } from "../../../context/MeetingContext"; 
 import LoadingSpinner from "../../../utils/LoadingAnimation";
 import MentorInfo from "../../../components/dashboard/utils/MentorInfo";
 import CourseInfo from "../../../components/dashboard/utils/CourseInfo";
@@ -81,6 +82,9 @@ const CourseDetails = () => {
   const [loading, setLoading] = useState(true);
   const dropdownRefs = useRef({});
 
+  // 2. Get meetings data from the context
+  const { meetings } = useMeeting();
+
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -111,15 +115,30 @@ const CourseDetails = () => {
         }
       }
     };
-
-    // Add event listener
     document.addEventListener("mousedown", handleClickOutside);
-
-    // Clean up
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [openDropdown]);
+
+  // 3. Check for a currently live meeting for THIS specific course
+  const liveMeeting = useMemo(() => {
+    if (!meetings || !courseID) return null;
+
+    const now = new Date(); // Get current time
+
+    // Find a meeting that belongs to the current course and is within its time frame
+    return meetings.find(meeting => {
+      const isForThisCourse = meeting.courseId === courseID;
+      if (!isForThisCourse) return false;
+
+      const startTime = new Date(meeting.start);
+      const endTime = new Date(meeting.end);
+      
+      return now >= startTime && now <= endTime;
+    });
+  }, [meetings, courseID]); // This will re-check whenever meetings data changes
+
 
   const toggleDropdown = (menu) => {
     setOpenDropdown(openDropdown === menu ? null : menu);
@@ -200,50 +219,31 @@ const CourseDetails = () => {
 
   const renderContent = () => {
     switch (selectedOption) {
-      case "Home":
-        return <StudentHome setSelectedOption={setSelectedOption} />;
-      case "Course":
-        return (
+      case "Home": return <StudentHome setSelectedOption={setSelectedOption} />;
+      case "Course": return (
           <div className="max-w-[1600px] mx-auto mt-4">
             <div className="text-3xl pl-10 font-bold">Explore Course</div>
             <div className="p-10 flex flex-col gap-2">
-              {/* Mentor Info */}
               <div className="flex gap-4 ">
                 <div className="flex flex-col w-[50%]">
                   <MentorInfo />
                   <SyllabusAccordion course={course} />
                 </div>
-
-                {/* Course Info */}
-
                 <CourseInfo course={course} />
               </div>
-              {/* Syllabus */}
-
-              {/* Weekly Plan */}
-
               <WeeklyPlanTable course={course} />
             </div>
           </div>
         );
-      case "Discussion":
-        return <DiscussionForum />;
-      case "Recorded":
-        return <LecturePanel />;
-      case "E-Content":
-        return <StudentContentSection />;
-      case "Graded":
-        return <StudentAssignmentSection courseID={courseID} selectedID="0" />;
-      case "Self Assessment":
-        return <SelfQuiz />;
-      case "Activity":
-        return <StudentActivitySection courseID={courseID} selectedID="0" />;
-      case "Assignments":
-        return <AssignmentsList />;
-      case "Announcements":
-        return <AllAnnouncements />;
-      default:
-        return <div>Welcome to the Home Section</div>;
+      case "Discussion": return <DiscussionForum />;
+      case "Recorded": return <LecturePanel />;
+      case "E-Content": return <StudentContentSection />;
+      case "Graded": return <StudentAssignmentSection courseID={courseID} selectedID="0" />;
+      case "Self Assessment": return <SelfQuiz />;
+      case "Activity": return <StudentActivitySection courseID={courseID} selectedID="0" />;
+      case "Assignments": return <AssignmentsList />;
+      case "Announcements": return <AllAnnouncements />;
+      default: return <div>Welcome to the Home Section</div>;
     }
   };
 
@@ -256,10 +256,6 @@ const CourseDetails = () => {
       <header className="bg-white border-b border-gray-200">
         <div className=" mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-end items-center h-16">
-          
-           
-
-            {/* Profile and Logout on Right */}
             <div className="flex items-center space-x-4 relative z-[1000]">
               <abbr title="Announcements">
                 <button className="p-2  rounded-full  hover:bg-primary/20 transition-colors  text-primary/70 hover:text-primary">
@@ -281,10 +277,10 @@ const CourseDetails = () => {
           </div>
         </div>
       </header>
- <Link to={"/its"} className="fixed h-16 w-16 bg-white border-black border-2 rounded  top-[60%] z-100 flex flex-col items-center justify-center"><Si1Panel className=" h-8 w-8  " /> ITS</Link>
+      <Link to={"/its"} className="fixed h-16 w-16 bg-white border-black border-2 rounded  top-[60%] z-100 flex flex-col items-center justify-center"><Si1Panel className=" h-8 w-8  " /> ITS</Link>
+      
       {/* Course Banner */}
       <div className="flex h-fit w-[90%] m-auto pt-4">
-        
         <img
           src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=2340&q=80"
           alt={course.name}
@@ -297,15 +293,34 @@ const CourseDetails = () => {
               {course.teacher?.name || "Unknown Instructor"}
             </p>
           </div>
-          <button className="flex justify-center items-center gap-2 bottom-[50%] absolute  right-8 text-lg px-6 py-2 bg-primary/80 text-white rounded-lg hover:bg-primary transition-colors">
-            <MdLiveTv />
-            Join Live Class
-          </button>
+          
+          {/* 4. DYNAMIC "JOIN LIVE CLASS" BUTTON */}
+          <div className="bottom-[50%] absolute right-8">
+            {liveMeeting ? (
+              <a
+                href={liveMeeting.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex justify-center items-center gap-2 text-lg px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors animate-pulse"
+              >
+                <MdLiveTv />
+                Join Live Class
+              </a>
+            ) : (
+              <button
+                disabled
+                className="flex justify-center items-center gap-2 text-lg px-6 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed"
+              >
+                <MdLiveTv />
+                No Live Class Now
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="bg-white shadow-sm fixed w-full top-0 z-40">
+      <nav className="bg-white shadow-sm sticky w-full top-0 z-40">
         <button
           onClick={() => navigate(-1)}
           className="absolute left-6 top-3 z-10 border border-black flex items-center space-x-2 px-4 py-2 bg-white/20 rounded-lg text-white hover:bg-gray-200 hover:text-black hover:shadow-md transition-all"
@@ -323,7 +338,7 @@ const CourseDetails = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="mx-auto  px-4 sm:px-6 lg:px-8 py-8 ">
+      <main className="mx-auto px-4 sm:px-6 lg:px-8 py-8 ">
         {renderContent()}
       </main>
     </div>

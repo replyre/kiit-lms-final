@@ -115,7 +115,7 @@ function ContentSection() {
     setIsLoading(true);
 
     try {
-      const response = await deleteChapter(courseData._id, moduleId, chapterId);
+      const response = await deleteChapter(courseData.id, moduleId, chapterId);
       if (response.success) {
         const newCourseData = JSON.parse(JSON.stringify(courseData));
         const moduleToUpdate = newCourseData.syllabus.modules.find(m => m._id === moduleId);
@@ -264,6 +264,7 @@ function ModulesView() {
 
 function ModuleSidebar() {
   const { modules, activeModuleId, setActiveModuleId } = useAppContext();
+
   return (
     <div className="w-80 bg-white border-r border-gray-200 p-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-6">MODULES</h2>
@@ -288,7 +289,7 @@ function ModuleSidebar() {
 
 function ChapterCard({ chapter, moduleId }) {
   const { setCurrentView, setSelectedArticle, handleDeleteChapter, handleAddNewArticle } = useAppContext();
-
+  console.log('ChapterCard rendered with chapter:', chapter.article);
   const handleChapterClick = () => {
     if (chapter.article) {
       setSelectedArticle(chapter.article);
@@ -318,7 +319,8 @@ function ChapterCard({ chapter, moduleId }) {
       <div onClick={chapter.article ? handleChapterClick : undefined} className={chapter.article ? "cursor-pointer" : ""}>
         <div className={`${chapter.color || 'bg-gray-300'} h-48 flex items-center justify-center`}>
           <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center">
-            <Book className="w-8 h-8 text-white" />
+            {<Book className="w-8 h-8 text-white " />}
+        
           </div>
         </div>
         <div className="p-6">

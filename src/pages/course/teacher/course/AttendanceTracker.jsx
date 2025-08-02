@@ -155,7 +155,7 @@ const AttendanceTracker = () => {
       {/* Header Section */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-secondary">
+          <h1 className="text-3xl font-bold text-primary">
             Attendance Tracker
           </h1>
           <p className="text-tertiary mt-1">
@@ -169,7 +169,7 @@ const AttendanceTracker = () => {
         <div className="p-6 border-b border-tertiary/10 flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <ClipboardCheck className="w-6 h-6 text-primary" />
-            <h2 className="text-xl font-semibold text-secondary">
+            <h2 className="text-xl font-semibold text-primary">
               Session Details
             </h2>
           </div>
@@ -211,7 +211,7 @@ const AttendanceTracker = () => {
                         type="date"
                         value={formatDateForInput(currentDate)}
                         onChange={handleDateChange}
-                        className="w-full bg-transparent focus:outline-none text-secondary"
+                        className="w-full bg-transparent focus:outline-none text-primary"
                       />
                     </div>
                   </div>
@@ -226,7 +226,7 @@ const AttendanceTracker = () => {
                         type="time"
                         value={currentTime}
                         onChange={handleTimeChange}
-                        className="w-full bg-transparent focus:outline-none text-secondary"
+                        className="w-full bg-transparent focus:outline-none text-primary"
                       />
                     </div>
                   </div>
@@ -238,7 +238,7 @@ const AttendanceTracker = () => {
                       <Calendar className="w-4 h-4 mr-2" />
                       Date
                     </span>
-                    <span className="text-lg font-medium text-secondary">
+                    <span className="text-lg font-medium text-primary">
                       {displayDate}
                     </span>
                   </div>
@@ -248,7 +248,7 @@ const AttendanceTracker = () => {
                       <Clock className="w-4 h-4 mr-2" />
                       Time
                     </span>
-                    <span className="text-lg font-medium text-secondary">
+                    <span className="text-lg font-medium text-primary">
                       {currentTime.slice(0, 5)}
                       {parseInt(currentTime) >= 12 ? " PM" : " AM"}
                     </span>
@@ -265,7 +265,7 @@ const AttendanceTracker = () => {
                     {calculateAttendancePercentage()}%
                   </div>
                   <div>
-                    <div className="text-secondary font-medium">
+                    <div className="text-primary font-medium">
                       Attendance Rate
                     </div>
                     <div className="text-tertiary text-sm">
@@ -323,7 +323,7 @@ const AttendanceTracker = () => {
         <div className="p-6 border-b border-tertiary/10">
           <div className="flex items-center space-x-3">
             <Users className="w-6 h-6 text-primary" />
-            <h2 className="text-xl font-semibold text-secondary">
+            <h2 className="text-xl font-semibold text-primary">
               Student Attendance
             </h2>
           </div>
@@ -356,11 +356,11 @@ const AttendanceTracker = () => {
                   key={student.id}
                   className="border-b border-tertiary/10 hover:bg-gray-50 transition-colors duration-150"
                 >
-                  <td className="py-4 px-6 text-secondary">{index + 1}</td>
-                  <td className="py-4 px-6 text-secondary font-medium">
+                  <td className="py-4 px-6 text-primary">{index + 1}</td>
+                  <td className="py-4 px-6 text-primary font-medium">
                     {student.rollNo}
                   </td>
-                  <td className="py-4 px-6 text-secondary">{student.name}</td>
+                  <td className="py-4 px-6 text-primary">{student.name}</td>
                   <td className="py-4 px-6 text-tertiary">{student.program}</td>
                   <td className="py-4 px-6">
                     <div className="flex justify-center">

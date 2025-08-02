@@ -110,7 +110,7 @@ const StudentAssignmentSectionCourse = () => {
     navigate('/student/dashboard'); // Adjust this path to your assignments list route
   };
 
-  const getCurrentSubmission = () => {
+   const getCurrentSubmission = () => {
     if (!selectedAssignment || !courseData?.student?.id) return null;
 
     return selectedAssignment.submissions.find(
@@ -193,7 +193,7 @@ const StudentAssignmentSectionCourse = () => {
               <div className="flex items-start justify-between">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">
-                    {selectedAssignment.title}
+                    {selectedAssignment.title} 
                   </h1>
                   <p className="text-gray-600 mt-2">
                     Course: {courseData?.title || "Loading course..."}

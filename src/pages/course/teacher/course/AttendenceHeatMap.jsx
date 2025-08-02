@@ -153,7 +153,7 @@ const AttendanceHeatMap = () => {
       return (
         <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
           <Calendar className="w-16 h-16 text-tertiary/30 mb-4" />
-          <h3 className="text-xl font-semibold text-secondary mb-2">
+          <h3 className="text-xl font-semibold text-primary mb-2">
             Semester Dates Not Set
           </h3>
           <p className="text-tertiary max-w-md">
@@ -168,7 +168,7 @@ const AttendanceHeatMap = () => {
       return (
         <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
           <CalendarDays className="w-16 h-16 text-tertiary/30 mb-4" />
-          <h3 className="text-xl font-semibold text-secondary mb-2">
+          <h3 className="text-xl font-semibold text-primary mb-2">
             No Attendance Data
           </h3>
           <p className="text-tertiary max-w-md">
@@ -196,7 +196,7 @@ const AttendanceHeatMap = () => {
               </div>
             </div>
             <div className="mt-4 flex items-end">
-              <span className="text-3xl font-bold text-secondary">
+              <span className="text-3xl font-bold text-primary">
                 {calculateOverallAttendance()}%
               </span>
               <span className="text-tertiary ml-2 mb-1">average</span>
@@ -205,7 +205,7 @@ const AttendanceHeatMap = () => {
 
           <div className="bg-white rounded-xl shadow-sm p-6 border border-tertiary/10">
             <h3 className="text-tertiary font-medium mb-2">Total Sessions</h3>
-            <div className="text-3xl font-bold text-secondary">
+            <div className="text-3xl font-bold text-primary">
               {attendanceData.reduce(
                 (sum, day) => sum + (day.raw?.sessions || 0),
                 0
@@ -215,14 +215,14 @@ const AttendanceHeatMap = () => {
 
           <div className="bg-white rounded-xl shadow-sm p-6 border border-tertiary/10">
             <h3 className="text-tertiary font-medium mb-2">Days Recorded</h3>
-            <div className="text-3xl font-bold text-secondary">
+            <div className="text-3xl font-bold text-primary">
               {attendanceData.length}
             </div>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm p-6 border border-tertiary/10">
             <h3 className="text-tertiary font-medium mb-2">Students</h3>
-            <div className="text-3xl font-bold text-secondary">
+            <div className="text-3xl font-bold text-primary">
               {courseData.students.length}
             </div>
           </div>
@@ -324,7 +324,7 @@ const AttendanceHeatMap = () => {
         <div className="flex items-start p-5 rounded-xl bg-primary/5 border border-primary/20 mt-6">
           <HelpCircle className="w-5 h-5 text-primary mt-0.5 mr-3 flex-shrink-0" />
           <div>
-            <p className="text-secondary font-medium mb-1">
+            <p className="text-primary font-medium mb-1">
               How to read this chart
             </p>
             <p className="text-tertiary text-sm">
@@ -346,7 +346,7 @@ const AttendanceHeatMap = () => {
       {/* Header Section */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-secondary">
+          <h1 className="text-3xl font-bold text-primary">
             Attendance Heat Map
           </h1>
           <p className="text-tertiary mt-1">

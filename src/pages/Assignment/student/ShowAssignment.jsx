@@ -22,7 +22,7 @@ const StudentAssignmentSection = ({ courseID, selectedID }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
-  const { courseData } = useCourse();
+  const { courseData  } = useCourse();
   const navigate = useNavigate();
   
 

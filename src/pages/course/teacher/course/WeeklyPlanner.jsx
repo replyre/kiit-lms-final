@@ -57,7 +57,7 @@ const WeeklyPlanner = () => {
       {/* Header Section */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-secondary">
+          <h1 className="text-3xl font-bold text-primary">
             Weekly Delivery Plan
           </h1>
           <p className="text-tertiary mt-1">
@@ -94,7 +94,7 @@ const WeeklyPlanner = () => {
 
                     <div className="flex items-center">
                       <CheckCircle className="w-4 h-4 text-primary mr-2" />
-                      <span className="text-secondary font-medium">
+                      <span className="text-primary font-medium">
                         {week.topics.length}{" "}
                         {week.topics.length === 1 ? "Topic" : "Topics"}
                       </span>
@@ -137,7 +137,7 @@ const WeeklyPlanner = () => {
                           <div className="flex-none w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                             <BookOpen className="w-4 h-4 text-primary" />
                           </div>
-                          <span className="text-secondary font-medium">
+                          <span className="text-primary font-medium">
                             {topic}
                           </span>
                         </div>
@@ -177,7 +177,7 @@ const WeeklyPlanner = () => {
                         placeholder="Enter new topic for this week"
                         className="flex-1 px-4 py-3 bg-white border border-tertiary/20 rounded-xl 
                           focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
-                          text-secondary placeholder-tertiary/50 transition-all duration-200"
+                          text-primary placeholder-tertiary/50 transition-all duration-200"
                       />
                       <button
                         onClick={() => handleAddTopic(week.weekNumber)}
@@ -208,7 +208,7 @@ const WeeklyPlanner = () => {
       {courseData.weeklyPlan.length === 0 && (
         <div className="bg-white rounded-2xl shadow-sm border border-tertiary/10 p-12 text-center">
           <CalendarIcon className="w-16 h-16 text-tertiary/30 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-secondary mb-2">
+          <h3 className="text-xl font-semibold text-primary mb-2">
             No Weeks Created Yet
           </h3>
           <p className="text-tertiary mb-8 max-w-md mx-auto">
@@ -230,7 +230,7 @@ const WeeklyPlanner = () => {
       <div className="flex items-start p-5 rounded-xl bg-primary/5 border border-primary/20 mt-6">
         <AlertCircle className="w-6 h-6 text-primary mt-0.5 mr-4 flex-shrink-0" />
         <div>
-          <p className="text-secondary font-medium mb-1">Week Definition</p>
+          <p className="text-primary font-medium mb-1">Week Definition</p>
           <p className="text-tertiary">
             Here "Week Plan" refers to a plan that covers the entire week,
             starting from Monday and ending on Sunday.

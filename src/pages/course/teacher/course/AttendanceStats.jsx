@@ -68,7 +68,7 @@ const AttendanceStats = () => {
       {/* Header Section */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-secondary">
+          <h1 className="text-3xl font-bold text-primary">
             Attendance Status Sheet
           </h1>
           <p className="text-tertiary mt-1">
@@ -86,7 +86,7 @@ const AttendanceStats = () => {
             </div>
             <div>
               <h3 className="text-tertiary font-medium">Total Sessions</h3>
-              <p className="text-2xl font-bold text-secondary">
+              <p className="text-2xl font-bold text-primary">
                 {sessionDates.length}
               </p>
             </div>
@@ -100,7 +100,7 @@ const AttendanceStats = () => {
             </div>
             <div>
               <h3 className="text-tertiary font-medium">Total Students</h3>
-              <p className="text-2xl font-bold text-secondary">
+              <p className="text-2xl font-bold text-primary">
                 {courseData.students?.length || 0}
               </p>
             </div>
@@ -114,7 +114,7 @@ const AttendanceStats = () => {
             </div>
             <div>
               <h3 className="text-tertiary font-medium">Class Average</h3>
-              <p className="text-2xl font-bold text-secondary">
+              <p className="text-2xl font-bold text-primary">
                 {courseData.students && courseData.students.length > 0
                   ? Math.round(
                       courseData.students.reduce(
@@ -133,7 +133,7 @@ const AttendanceStats = () => {
       {sessionDates.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm border border-tertiary/10 p-12 text-center">
           <FileSpreadsheet className="w-16 h-16 text-tertiary/30 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-secondary mb-2">
+          <h3 className="text-xl font-semibold text-primary mb-2">
             No Attendance Records
           </h3>
           <p className="text-tertiary mb-4 max-w-md mx-auto">
@@ -146,7 +146,7 @@ const AttendanceStats = () => {
           <div className="p-6 border-b border-tertiary/10">
             <div className="flex items-center space-x-3">
               <FileSpreadsheet className="w-6 h-6 text-primary" />
-              <h2 className="text-xl font-semibold text-secondary">
+              <h2 className="text-xl font-semibold text-primary">
                 Attendance Records
               </h2>
             </div>
@@ -191,8 +191,8 @@ const AttendanceStats = () => {
                         key={student.id}
                         className="border-b border-tertiary/10 hover:bg-gray-50 transition-colors duration-150"
                       >
-                        <td className="p-3 text-secondary">{index + 1}</td>
-                        <td className="p-3 text-secondary font-medium">
+                        <td className="p-3 text-primary">{index + 1}</td>
+                        <td className="p-3 text-primary font-medium">
                           {student.rollNo}
                         </td>
                         <td className="p-3">
@@ -293,7 +293,7 @@ const AttendanceStats = () => {
       <div className="flex items-start p-5 rounded-xl bg-primary/5 border border-primary/20 mt-6">
         <AlertCircle className="w-5 h-5 text-primary mt-0.5 mr-3 flex-shrink-0" />
         <div>
-          <p className="text-secondary font-medium mb-1">
+          <p className="text-primary font-medium mb-1">
             About Attendance Status
           </p>
           <p className="text-tertiary text-sm">
