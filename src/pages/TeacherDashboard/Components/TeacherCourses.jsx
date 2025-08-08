@@ -23,7 +23,7 @@ const TeacherCourses = () => {
     "https://thumbs.dreamstime.com/b/businessman-looking-dice-sketch-thoughtful-chalkboard-connected-game-probability-theory-73451825.jpg",
     "https://i.ytimg.com/vi/96bNsQgv10A/maxresdefault.jpg",
   ];
-
+  
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -209,7 +209,7 @@ const TeacherCourses = () => {
                     className="bg-red-600 text-white px-6 py-2 rounded-md text-sm hover:bg-red-700 transition-colors flex items-center gap-2 animate-pulse"
                   >
                     <MonitorPlay className="h-5 w-5" />
-                    Join Live
+                    Join Live 
                   </a>
                 ) : (
                   <button

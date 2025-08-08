@@ -88,12 +88,12 @@ const TeacherDashboard = () => {
                   className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-all text-base
         ${
           activeSection === item.id
-            ? "bg-primary/10 text-primary font-medium"
+            ? "bg-accent1/10 text-accent1 font-medium"
             : "text-tertiary hover:bg-gray-100"
         }`}
                 >
                   {/* Icon remains visible */}
-                  <span className="text-primary flex justify-center w-7">
+                  <span className="text-accent1 flex justify-center w-7">
                     {React.cloneElement(item.icon, { size: 22 })}
                   </span>
                   {/* Text fades in and out */}
@@ -118,7 +118,7 @@ const TeacherDashboard = () => {
             to={"/teacher/profile/myprofile"}
             className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-tertiary hover:bg-gray-100"
           >
-            <span className="text-primary flex justify-center w-7">
+            <span className="text-accent1 flex justify-center w-7">
               <FaUserCircle size={22} />
             </span>
             <span
@@ -134,7 +134,7 @@ const TeacherDashboard = () => {
             to={"/teacher/profile/account"}
             className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-tertiary hover:bg-gray-100"
           >
-            <span className="text-primary flex justify-center w-7">
+            <span className="text-accent1 flex justify-center w-7">
               <Settings size={22} />
             </span>
             <span
@@ -150,7 +150,7 @@ const TeacherDashboard = () => {
             to={"/teacher/profile/help"}
             className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-tertiary hover:bg-gray-100"
           >
-            <span className="text-primary flex justify-center w-7">
+            <span className="text-accent1 flex justify-center w-7">
               <HelpCircle size={22} />
             </span>
             <span

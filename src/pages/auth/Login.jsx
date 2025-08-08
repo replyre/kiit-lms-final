@@ -75,7 +75,7 @@ const Login = () => {
           <h1 className="text-[20px] lg:text-[30px]   text-center text-black lg:my-2 font-[Poppins]">
             OneCampus
           </h1>
-          <h2 className="text-2xl lg:text-3xl   font-bold text-center text-black mb-6 lg:mb-8">
+          <h2 className="text-2xl lg:text-3xl font-sf  font-bold text-center text-black mb-6 lg:mb-8">
             Welcome back!
           </h2>
 
