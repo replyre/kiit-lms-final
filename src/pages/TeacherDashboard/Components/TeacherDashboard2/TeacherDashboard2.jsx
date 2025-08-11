@@ -118,7 +118,7 @@ const TeacherDashboard2 = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Active Courses */}
-        <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm transition-all hover:shadow-md">
+        <div className="bg-white border border-gr-200 p-6 rounded-lg shadow-sm transition-all hover:shadow-md">
           <div className="flex items-center space-x-3 mb-4">
             <div className="text-primary">
               <Book className="h-6 w-6" />
@@ -137,7 +137,7 @@ const TeacherDashboard2 = () => {
         </div>
 
         {/* Total Students */}
-        <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm transition-all hover:shadow-md">
+        <div className="bg-white border border-gr-200 p-6 rounded-lg shadow-sm transition-all hover:shadow-md">
           <div className="flex items-center space-x-3 mb-4">
             <div className="text-primary">
               <Users className="h-6 w-6" />
@@ -156,7 +156,7 @@ const TeacherDashboard2 = () => {
         </div>
 
         {/* Pending Grades */}
-        <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm cursor-pointer transition-all hover:shadow-md">
+        <div className="bg-white border border-gr-200 p-6 rounded-lg shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-green-50">
           <div className="flex items-center space-x-3 mb-4">
             <div className="text-primary">
               <CheckSquare className="h-6 w-6" />
@@ -175,7 +175,7 @@ const TeacherDashboard2 = () => {
         </div>
 
         {/* Upcoming Lectures */}
-        <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm cursor-pointer transition-all hover:shadow-md">
+        <div className="bg-white border border-gr-200 p-6 rounded-lg shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-green-50">
           <div className="flex items-center space-x-3 mb-4">
             <div className="text-primary">
               <Video className="h-6 w-6" />

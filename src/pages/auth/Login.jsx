@@ -2,22 +2,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { authService } from "../../services/api";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { GraduationCap, Mail, Lock } from "lucide-react";
-import logo from "./logo.jpg";
+import { useState } from "react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [image, setImage] = useState("");
-
-  // useEffect(() => {
-  //   fetch("https://source.unsplash.com/600x400/?education,learning")
-  //     .then((response) => setImage(response.url))
-  //     .catch(() => setImage(""));
-  // }, []);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -35,11 +28,11 @@ const Login = () => {
         formData.email,
         formData.password
       );
-      // console.log(response.data.user.role);
+      
       if (response.data) {
         login(response.data);
         let redirectPath = "";
-        if (response.data.user.role == "admin") {
+        if (response.data.user.role === "admin") {
           redirectPath = "/admin";
         } else {
           redirectPath =
@@ -47,56 +40,89 @@ const Login = () => {
               ? "/teacher/dashboard"
               : "/student/dashboard";
         }
-
+        toast.success("Login successful!");
         navigate(redirectPath);
       }
     } catch (err) {
-      console.log("error", error);
-      toast.error("Login failed. Try again.");
-
-      return;
+      console.log("error", err);
+      toast.error("Login failed. Please check your credentials and try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-screen flex flex-col lg:flex-row-reverse">
-      {/* Left side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-8">
-        <div className="w-full max-w-md">
-          <div className="flex items-center justify-center  text-slate-600">
-            <img
-              src={"/Nexus.jpeg"}
-              alt="Logo"
-              className="h-[150px] w-[150px] object-cover"
-            />
-          </div>
-          <h1 className="text-[20px] lg:text-[30px]   text-center text-black lg:my-2 font-[Poppins]">
+    <div className="min-h-screen w-screen flex flex-col lg:flex-row font-sans">
+      {/* Left side - Image and Welcome Text */}
+      <div className="relative hidden lg:flex w-full lg:w-1/2 items-end justify-center p-12 bg-gradient-to-r from-emerald-500 to-green-700 bg-cover bg-center">
+        <img
+          src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop"
+          alt="University Campus"
+          className="absolute inset-0 object-cover w-full h-full opacity-40"
+          onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/1000x1200/111827/ffffff?text=Campus'; }}
+        />
+         <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="absolute z-10 text-white top-5 left-10 "
+        >
+          <p className="text-lg text-white font-bold ">
             OneCampus
-          </h1>
-          <h2 className="text-2xl lg:text-3xl font-sf  font-bold text-center text-black mb-6 lg:mb-8">
-            Welcome back!
+          </p>
+        </motion.div>
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="relative z-10 text-white top-[-50%] left-[-10%]"
+        >
+          <h2 className="text-4xl font-bold leading-tight mb-3 ">
+            Empowering Minds, <br /> One Login at a Time.
           </h2>
+          <p className="text-lg text-gray-100">
+            Welcome to the future of learning with KIIT LMS.
+          </p>
+          <div className="mt-2 flex gap-2">
+          <div className="h-4 w-4  bg-white rounded-full"></div>
+          <div className="h-4 w-4  bg-white rounded-full"></div>
+           <div className="h-4 w-8  bg-white rounded-full"></div>
+          </div>
+        </motion.div>
+      </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-6">
-            <div className="relative">
+      {/* Right side - Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white">
+        <div className="w-full max-w-md">
+          <div className="text-left mb-10">
+            <h1 className="text-4xl font-bold text-gray-800">
+              KIIT LMS
+            </h1>
+            <p className="text-gray-500 mt-2">Welcome back! Please sign in to your account.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-black mb-1"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Email address
+                Email Address
               </label>
               <div className="relative">
-                <Mail
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-accent1"
-                  size={20}
-                />
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+                  <Mail
+                    className="h-5 w-5 text-gray-400"
+                    aria-hidden="true"
+                  />
+                </span>
                 <input
                   id="email"
                   type="email"
-                  className="pl-10 w-full p-3 border border-accent1 text-slate-600 outline-none rounded-lg focus:ring-2 focus:ring-accent2 focus:border-primary placeholder:text-slate-400"
-                  placeholder="Enter your email"
+                  autoComplete="email"
+                  required
+                  className="block w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  placeholder="you@example.com"
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
@@ -105,65 +131,59 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="relative">
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-black mb-1"
-              >
-                Password
-              </label>
+            <div>
+              <div className="flex justify-between items-baseline">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Password
+                </label>
+                <a href="#" className="text-sm text-emerald-600 hover:text-emerald-500">
+                  Forgot password?
+                </a>
+              </div>
               <div className="relative">
-                <Lock
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-accent1"
-                  size={20}
-                />
+                 <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+                  <Lock
+                    className="h-5 w-5 text-gray-400"
+                    aria-hidden="true"
+                  />
+                </span>
                 <input
                   id="password"
-                  type="password"
-                  className="pl-10 w-full p-3 border border-accent1 text-slate-600 outline-none rounded-lg focus:ring-2 focus:ring-accent2 focus:border-primary placeholder:text-slate-400"
-                  placeholder="Enter your password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  required
+                  className="block w-full pl-12 pr-12 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
               </div>
             </div>
 
             <button
               type="submit"
-              className={`w-full py-3 px-4 border border-transparent rounded-lg shadow-sm text-white transition duration-150 ${
+              disabled={loading}
+              className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white transition-all duration-300 ease-in-out transform hover:scale-105 ${
                 loading
-                  ? "bg-accent2 hover:cursor-not-allowed"
-                  : "bg-accent1/80 hover:bg-accent1/90"
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
               }`}
             >
-              {!loading ? "Sign in" : "Signing in ..."}
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
-        </div>
-      </div>
-
-      {/* Right side - Gradient Background */}
-      <div className="hidden lg:block w-full lg:w-1/2 relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-secondary to-primary">
-          <div className="absolute inset-0 bg-black opacity-20"></div>
-          <img
-            src="/loginbg.jpg"
-            alt="Students studying"
-            className="object-cover w-full h-full mix-blend-overlay"
-          />
-        </div>
-        <div className="relative h-full flex items-center justify-center p-6 lg:p-12">
-          <div className="text-white text-center">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4 lg:mb-6">
-              Transform Your Learning Journey
-            </h2>
-            <p className="text-sm lg:text-lg">
-              Join our community of learners and educators to experience
-              education like never before.
-            </p>
-          </div>
         </div>
       </div>
     </div>

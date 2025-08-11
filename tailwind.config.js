@@ -6,8 +6,8 @@ module.exports = {
         primary: "#000000",
         secondary: "#FFFFFF",
         tertiary: "#848484",
-        accent1:"#0F62FE",
-        accent2:"#A6C8FF"
+        accent1:"#1aa100",
+        accent2:"##a3f294"
       },
       inset:{
         '2/5':"40%",

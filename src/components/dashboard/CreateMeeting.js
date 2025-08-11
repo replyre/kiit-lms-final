@@ -11,12 +11,12 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import { Tooltip } from "react-tooltip";
-import { useMeeting } from "../../context/MeetingContext"; // 1. Import the context hook
+import { useMeeting } from "../../context/MeetingContext";
 
 // Set up the localizer for react-big-calendar
 const localizer = momentLocalizer(moment);
 
-// --- Child Components (No changes needed here) ---
+// --- Child Components (No changes needed) ---
 const EventComponent = ({ event }) => (
   <div
     className="flex items-center h-full p-1 overflow-hidden"
@@ -87,18 +87,20 @@ const SubjectMeeting = ({ meeting, onJoin }) => (
   </div>
 );
 
-// --- Main Component (Refactored) ---
+// --- Main Component ---
 const CreateMeeting = () => {
-  // 2. Get meetings and loading state from the context
+  // Get meetings, loading status, and error state from the context
   const { meetings, loading, error } = useMeeting();
+  console.log("meetings",meetings);
+  
 
-  // Local UI state remains here
+  // Local UI state for view, selected date, and modal
   const [view, setView] = useState("cards"); // 'calendar' or 'cards'
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedMeeting, setSelectedMeeting] = useState(null);
 
-  // 3. Process the meetings from context to create Date objects for the calendar
-  // useMemo ensures this only runs when the meetings data changes
+  // Process meetings from context into a format for the calendar
+  // useMemo prevents reprocessing on every render, improving performance
   const processedMeetings = useMemo(() => {
     return meetings.map((meeting) => ({
       ...meeting,
@@ -108,7 +110,7 @@ const CreateMeeting = () => {
     }));
   }, [meetings]);
 
-  // Filter meetings for the selected date in card view
+  // Filter meetings for the selected date when in "List View"
   const filteredMeetings =
     view === "cards"
       ? processedMeetings.filter(
@@ -118,46 +120,40 @@ const CreateMeeting = () => {
         )
       : processedMeetings;
 
-  // Handle calendar event selection
   const handleSelectEvent = (event) => {
     setSelectedMeeting(event);
   };
 
-  // Handle calendar navigation
   const handleNavigate = (date) => {
     setSelectedDate(date);
   };
 
-  // Handle join meeting
   const handleJoinMeeting = (meeting) => {
     window.open(meeting.link, "_blank");
   };
 
-  // Create events for the calendar from the processed data
+  // Format meetings for react-big-calendar's `events` prop
   const calendarEvents = processedMeetings.map((meeting) => ({
     ...meeting,
     title: meeting.subject,
   }));
 
-  // Custom calendar components and styling
   const calendarComponents = {
     event: EventComponent,
   };
 
-  // 4. Use the loading state from the context
   if (loading) {
     return (
-      <div className="text-center py-8">
+      <div className="flex items-center justify-center h-screen">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
-        <p className="mt-2 text-gray-600">Loading meetings...</p>
+        <p className="mt-4 text-gray-600">Loading meetings...</p>
       </div>
     );
   }
 
-  // Handle any errors from the context
   if (error) {
     return (
-      <div className="text-center py-8 text-red-500">
+      <div className="flex items-center justify-center h-screen text-red-500">
         <p>Error: {error}</p>
       </div>
     );
@@ -166,7 +162,7 @@ const CreateMeeting = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        {/* Header section */}
+        {/* Header and View Toggle */}
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">
@@ -176,8 +172,6 @@ const CreateMeeting = () => {
               Schedule and join your virtual classroom sessions
             </p>
           </div>
-
-          {/* View toggle */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1 flex">
             <button
               className={`px-4 py-2 rounded ${
@@ -202,7 +196,7 @@ const CreateMeeting = () => {
           </div>
         </div>
 
-        {/* Main content area */}
+        {/* Conditional Rendering based on view state */}
         {view === "calendar" ? (
           <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
             <div style={{ height: 600 }}>
@@ -283,7 +277,7 @@ const CreateMeeting = () => {
         )}
       </div>
 
-      {/* Meeting details tooltip */}
+      {/* Tooltip for calendar events */}
       {processedMeetings.map((meeting) => (
         <Tooltip
           key={meeting._id}
@@ -303,7 +297,7 @@ const CreateMeeting = () => {
         />
       ))}
 
-      {/* Meeting detail modal */}
+      {/* Modal for selected meeting details */}
       {selectedMeeting && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 max-w-md w-full">

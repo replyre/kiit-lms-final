@@ -11,11 +11,8 @@ import {
   BookOpen,
   Layers,
 } from "lucide-react";
-import {
-  courses,
-  assignments,
-  events,
-} from "../../../components/data/mockData";
+// 1. Import the context hook
+import { useMeeting } from "../../../context/MeetingContext";
 import toast from "react-hot-toast";
 import { getAllCourses } from "../../../services/course.service";
 import calculateAttendance from "../../../utils/Functions/CalculateStudentAttendencePercentage";
@@ -23,19 +20,21 @@ import AssignmentStatusChart from "./AssignmentStatusChart";
 
 const DashboardSemesterContent = ({ setActiveSection }) => {
   const navigate = useNavigate();
-  const [meetingsData, setMeetingsData] = useState([]);
+  // 2. Get meetings and their state from the context
+  const { meetings, loading: meetingsLoading, error: meetingsError, fetchMeetings } = useMeeting();
+  
   const [coursesData, setCoursesData] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   console.log(coursesData);
-  
+
   const allAssignmentsCount = coursesData.courses?.reduce((total, course) => {
     const assignmentsInCourse = course.assignments?.length || 0;
     return total + assignmentsInCourse;
   }, 0) || 0;
-  
+
   const pendingAssignmentsCount = coursesData.courses?.reduce((total, course) => {
-    const pendingInCourse = course.assignments?.filter(assignment => 
+    const pendingInCourse = course.assignments?.filter(assignment =>
       assignment.submissions.length === 0
     ).length || 0;
     return total + pendingInCourse;
@@ -44,7 +43,7 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
   // Function to get all assignments from all courses
   const getAllAssignments = () => {
     if (!coursesData.courses) return [];
-    
+
     const assignments = [];
     coursesData.courses.forEach(course => {
       if (course.assignments && course.assignments.length > 0) {
@@ -57,7 +56,7 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
         });
       }
     });
-    
+
     // Sort by due date (most recent first)
     return assignments.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
   };
@@ -67,7 +66,7 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
     if (!assignment.submissions || assignment.submissions.length === 0) {
       return "not_started";
     }
-    
+
     const userSubmission = assignment.submissions.find(sub => sub.student === userId);
     if (userSubmission) {
       if (userSubmission.status === "graded") {
@@ -76,7 +75,7 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
         return "in_progress";
       }
     }
-    
+
     return "not_started";
   };
 
@@ -90,67 +89,71 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
     });
   };
 
+  // Function to format time
+  const formatTime = (dateString) => {
+      const date = new Date(dateString);
+      return date.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+      });
+  };
+
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         const data = await getAllCourses();
+        await fetchMeetings();
         setCoursesData(data);
-        await fetchMeetings(); 
-        setLoading(false);
+        // 3. Removed the local fetchMeetings() call
+        
       } catch (err) {
         console.log(err);
         toast.error("Failed to load courses. Please try again later.");
+      } finally {
         setLoading(false);
       }
     };
 
     fetchCourses();
   }, []);
-
-  const getThisWeekMeetings = () => {
-    const now = new Date();
-    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay())); // Start of week (Sunday)
-    startOfWeek.setHours(0, 0, 0, 0);
-    
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6); // End of week (Saturday)
-    endOfWeek.setHours(23, 59, 59, 999);
-
-    return meetingsData.filter(meeting => 
-      meeting.date >= startOfWeek && meeting.date <= endOfWeek
-    );
-  };
-
-  const fetchMeetings = async () => {
-    try {
-      const response = await fetch("https://meeting-backend-theta.vercel.app/api/meetings");
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch meetings");
-      }
-
-      const data = await response.json();
-
-      // Process the data to convert string dates to Date objects
-      const processedData = data.map((meeting) => ({
-        ...meeting,
-        date: new Date(meeting.date),
-        start: new Date(meeting.start),
-        end: new Date(meeting.end),
-      }));
-
-      setMeetingsData(processedData);
-    } catch (err) {
-      console.log(err);
+  
+  // Effect to handle meeting loading errors
+  useEffect(() => {
+    if (meetingsError) {
       toast.error("Failed to load meetings. Please try again later.");
     }
-  };
+  }, [meetingsError]);
 
-  const dummyData = {
-    courses,
-    assignments,
-    events,
+
+  // 4. Updated function to use meetings from context
+  const getThisWeekMeetings = () => {
+    if (!meetings || meetings.length === 0) return [];
+    
+    const now = new Date();
+    // Set to the beginning of the current day
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Set to the end of the day 6 days from now
+    const endOfWeek = new Date(today);
+    endOfWeek.setDate(today.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    return meetings.filter(meeting => {
+      const meetingStartDate = new Date(meeting.start);
+      return meetingStartDate >= today && meetingStartDate <= endOfWeek;
+    });
   };
+  
+  // Get upcoming events from meetings
+  const upcomingEvents = meetings
+    ? meetings
+        .filter(m => new Date(m.start) > new Date())
+        .sort((a, b) => new Date(a.start) - new Date(b.start))
+        .slice(0, 3)
+    : [];
+
 
   const getStatusStyle = (status) => {
     const styles = {
@@ -175,7 +178,8 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
     navigate(`/student/assignment/${assignment.courseId}/${assignment._id}`);
   };
 
-  if (loading) {
+  // Combine loading states for the main loader
+  if (loading || meetingsLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
@@ -218,6 +222,7 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
             id: "LiveClass",
             title: "Live Classes",
             icon: <Calendar className="h-6 w-6 text-primary" />,
+            // 5. Count is now dynamic based on context data
             count: getThisWeekMeetings().length,
             description: "This Week",
             bgClass: "bg-white",
@@ -313,7 +318,7 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
                         {course.semester.name}
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center space-x-3 text-xs">
                       <div className="flex items-center space-x-1">
                         <CheckSquare className="h-3.5 w-3.5 text-blue-500" />
@@ -345,20 +350,20 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
             </h2>
           </div>
 
-         <AssignmentStatusChart 
-          allAssignmentsCount={allAssignmentsCount}
-          pendingAssignmentsCount={pendingAssignmentsCount}
-          setActiveSection={setActiveSection}
-        />
+          <AssignmentStatusChart
+            allAssignmentsCount={allAssignmentsCount}
+            pendingAssignmentsCount={pendingAssignmentsCount}
+            setActiveSection={setActiveSection}
+          />
         </div>
       </div>
 
-      {/* Upcoming Events Section */}
+      {/* Upcoming Events Section - Now Dynamic */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-800 flex items-center">
             <Calendar className="h-5 w-5 mr-2 text-primary" />
-            Upcoming Events
+            Upcoming Live Classes
           </h2>
           <button
             className="text-accent1/80 hover:text-accent1 flex items-center text-sm font-medium"
@@ -368,48 +373,57 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {dummyData.events.map((event) => (
-            <div
-              key={event.id}
-              className="group flex flex-col bg-white rounded-lg border border-gray-100 hover:border-accent1/60 hover:shadow-md transition-all duration-200 overflow-hidden cursor-pointer"
-              onClick={() => navigate(event.link)}
-            >
-              <div className="relative h-40">
-                <img
-                  src={event.image}
-                  alt={event.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                <div className="absolute bottom-3 left-3 right-3">
-                  <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg inline-flex items-center">
-                    <Calendar className="h-3.5 w-3.5 text-primary mr-1.5" />
-                    <span className="text-xs font-medium">
-                      {event.date} · {event.time}
-                    </span>
+        {upcomingEvents.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {upcomingEvents.map((event) => (
+              <div
+                key={event._id}
+                className="group flex flex-col bg-white rounded-lg border border-gray-100 hover:border-accent1/60 hover:shadow-md transition-all duration-200 overflow-hidden cursor-pointer"
+                onClick={() => window.open(event.link, '_blank')}
+              >
+                <div className="relative h-40">
+                  {/* Using a generic placeholder image as none is provided in the data */}
+                  <img
+                    src={"/course.png"}
+                    alt={event.subject}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg inline-flex items-center">
+                      <Calendar className="h-3.5 w-3.5 text-primary mr-1.5" />
+                      <span className="text-xs font-medium">
+                        {formatDate(event.start)} · {formatTime(event.start)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="p-4">
-                <h3 className="text-base font-medium text-gray-800 group-hover:text-primary transition-colors mb-1">
-                  {event.name}
-                </h3>
-                <p className="text-sm text-gray-500 line-clamp-2">
-                  {event.description}
-                </p>
-              </div>
+                <div className="p-4">
+                  <h3 className="text-base font-medium text-gray-800 group-hover:text-primary transition-colors mb-1">
+                    {event.subject}
+                  </h3>
+                  <p className="text-sm text-gray-500 line-clamp-2">
+                    {event.description}
+                  </p>
+                </div>
 
-              <div className="mt-auto border-t border-gray-100 p-3 flex items-center justify-between">
-                <span className="text-xs font-medium text-accent1">
-                  View Event
-                </span>
-                <ArrowRight className="h-4 w-4 text-accent1" />
+                <div className="mt-auto border-t border-gray-100 p-3 flex items-center justify-between">
+                  <span className="text-xs font-medium text-accent1">
+                    Join Class
+                  </span>
+                  <ArrowRight className="h-4 w-4 text-accent1" />
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-500 mb-2">No Upcoming Classes</h3>
+            <p className="text-gray-400">New classes scheduled by your teachers will appear here.</p>
+          </div>
+        )}
       </div>
 
       {/* Assignments Section - Now Dynamic */}
