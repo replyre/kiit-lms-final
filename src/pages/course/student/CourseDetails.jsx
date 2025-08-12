@@ -277,7 +277,7 @@ const CourseDetails = () => {
           </div>
         </div>
       </header>
-      <Link to={"/its"} className="fixed h-16 w-16 bg-white border-black border-2 rounded  top-[60%] z-100 flex flex-col items-center justify-center"><Si1Panel className=" h-8 w-8  " /> ITS</Link>
+      {/* <Link to={"/its"} className="fixed h-16 w-16 bg-white border-black border-2 rounded  top-[60%] z-100 flex flex-col items-center justify-center"><Si1Panel className=" h-8 w-8  " /> ITS</Link> */}
       
       {/* Course Banner */}
       <div className="flex h-fit w-[90%] m-auto pt-4">

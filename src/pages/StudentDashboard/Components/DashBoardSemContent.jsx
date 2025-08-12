@@ -21,7 +21,7 @@ import AssignmentStatusChart from "./AssignmentStatusChart";
 const DashboardSemesterContent = ({ setActiveSection }) => {
   const navigate = useNavigate();
   // 2. Get meetings and their state from the context
-  const { meetings, loading: meetingsLoading, error: meetingsError, fetchMeetings } = useMeeting();
+  const { meetings, loading: meetingsLoading, error: meetingsError,  } = useMeeting();
   
   const [coursesData, setCoursesData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -103,9 +103,8 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
     const fetchCourses = async () => {
       try {
         const data = await getAllCourses();
-        await fetchMeetings();
+      
         setCoursesData(data);
-        // 3. Removed the local fetchMeetings() call
         
       } catch (err) {
         console.log(err);

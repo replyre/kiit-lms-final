@@ -103,7 +103,7 @@ const Courseware = () => {
               </div>
               <div className="text-right">
                 <div className="text-sm text-gray-500">Total Courses</div>
-                <div className="text-2xl font-bold text-blue-600">{userInfo?.totalCourses || 0}</div>
+                <div className="text-2xl font-bold text-accent1">{userInfo?.totalCourses || 0}</div>
               </div>
             </div>
             
@@ -115,7 +115,7 @@ const Courseware = () => {
                     onClick={() => semester.accessible && setActiveTab(index)}
                     className={`px-6 py-3 rounded-xl transition-all duration-200 text-sm font-medium whitespace-nowrap ${
                       activeTab === index
-                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
+                        ? "bg-green-600 text-white shadow-lg shadow-green-600/25"
                         : semester.accessible
                         ? "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md"
                         : "bg-gray-50 text-gray-400 cursor-not-allowed"
@@ -179,8 +179,8 @@ const Courseware = () => {
                     <div className="p-6">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center">
-                          <Book className="h-5 w-5 text-blue-600 mr-2 flex-shrink-0" />
-                          <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                          <Book className="h-5 w-5 text-accent1 mr-2 flex-shrink-0" />
+                          <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-accent1 transition-colors">
                             {course.title}
                           </h3>
                         </div>

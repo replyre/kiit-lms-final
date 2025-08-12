@@ -115,7 +115,7 @@ const CreateMeeting = () => {
     view === "cards"
       ? processedMeetings.filter(
           (meeting) =>
-            moment(meeting.date).format("YYYY-MM-DD") ===
+            moment(meeting.start).format("YYYY-MM-DD") ===
             moment(selectedDate).format("YYYY-MM-DD")
         )
       : processedMeetings;
