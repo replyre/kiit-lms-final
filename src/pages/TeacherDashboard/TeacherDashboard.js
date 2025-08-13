@@ -66,13 +66,13 @@ const TeacherDashboard = () => {
           <div className="mt-6 text-black flex items-center justify-center px-4 gap-2">
             {isCollapsed ? (
               <img
-                src="/Dhamm.png"
+                src="/logo.png"
                 alt="Company Logo"
                 className={`transition-all duration-300 object-contain ${"w-[50px] h-[40px]"}`}
               />
             ) : (
               <img
-                src="/DhammName.png"
+                src="/logo_full.png"
                 alt="Company Logo"
                 className={`transition-all duration-300 object-contain ${"w-full h-[auto"}`}
               />

@@ -54,7 +54,7 @@ const Login = () => {
   return (
     <div className="min-h-screen w-screen flex flex-col lg:flex-row font-sans">
       {/* Left side - Image and Welcome Text */}
-      <div className="relative hidden lg:flex w-full lg:w-1/2 items-end justify-center p-12 bg-gradient-to-r from-emerald-500 to-green-700 bg-cover bg-center">
+      <div className="relative hidden lg:flex w-full lg:w-1/2 items-end justify-center p-12 bg-gradient-to-r from-green-700 to-green-700 bg-cover bg-center">
         <img
           src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop"
           alt="University Campus"
@@ -67,9 +67,8 @@ const Login = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="absolute z-10 text-white top-5 left-10 "
         >
-          <p className="text-lg text-white font-bold ">
-            OneCampus
-          </p>
+          <img src="/logo_full.png" alt="" className="h-12" />
+        
         </motion.div>
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
@@ -81,7 +80,7 @@ const Login = () => {
             Empowering Minds, <br /> One Login at a Time.
           </h2>
           <p className="text-lg text-gray-100">
-            Welcome to the future of learning with KIIT LMS.
+            Welcome to the future of learning with KIITX LMS.
           </p>
           <div className="mt-2 flex gap-2">
           <div className="h-4 w-4  bg-white rounded-full"></div>
@@ -96,7 +95,7 @@ const Login = () => {
         <div className="w-full max-w-md">
           <div className="text-left mb-10">
             <h1 className="text-4xl font-bold text-gray-800">
-              KIIT LMS
+              KIITX LMS
             </h1>
             <p className="text-gray-500 mt-2">Welcome back! Please sign in to your account.</p>
           </div>
