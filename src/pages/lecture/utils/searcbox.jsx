@@ -149,60 +149,66 @@ const AutoResizeTextbox = () => {
   };
 
   return (
-    <div className="w-full flex flex-col justify-between bg-gray-50 min-h-fit">
+    <div className="w-full flex flex-col justify-between bg-gray-50 dark:bg-gray-900 min-h-fit">
       <div className="w-full max-w-7xl mx-auto p-4 flex flex-col h-full">
         {/* Response Area - Always rendered but with conditional content */}
         <div
           ref={responseRef}
-          className="bg-white rounded-2xl shadow-lg mb-4 p-6 flex-grow overflow-y-auto max-h-[60vh]"
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-xl mb-4 p-6 flex-grow overflow-y-auto max-h-[60vh] border border-gray-200 dark:border-gray-600"
           style={{ display: loading || displayedResponse ? "block" : "none" }}
         >
           {loading && (
             <div className="flex justify-center items-center h-16">
-              <Loader size={24} className="text-emerald-600 animate-spin" />
+              <Loader size={24} className="text-emerald-600 dark:text-emerald-400 animate-spin" />
             </div>
           )}
           {displayedResponse && (
-            <div className="prose max-w-none">
-              <ReactMarkdown>{displayedResponse}</ReactMarkdown>
+            <div className="prose prose-gray dark:prose-invert max-w-none">
+              <div className="text-gray-900 dark:text-gray-100">
+                <ReactMarkdown>{displayedResponse}</ReactMarkdown>
+              </div>
             </div>
           )}
         </div>
 
         {/* Input Area */}
         <div
-          className="relative bg-white rounded-2xl shadow-lg"
+          className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-xl border border-gray-200 dark:border-gray-600"
           ref={containerRef}
         >
-          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
+          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 dark:border-gray-600">
             <div className="relative">
               <button
                 onClick={toggleDropdown}
-                className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50"
+                className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
-                <Sparkles size={16} className="text-emerald-600" />
-                <span className="text-sm font-medium">{selectedModel}</span>
+                <Sparkles size={16} className="text-emerald-600 dark:text-emerald-400" />
+                <span className="text-sm font-medium text-gray-900 dark:text-white">{selectedModel}</span>
                 {isDropdownOpen ? (
-                  <ChevronUp size={16} className="text-gray-400" />
+                  <ChevronUp size={16} className="text-gray-400 dark:text-gray-500" />
                 ) : (
-                  <ChevronDown size={16} className="text-gray-400" />
+                  <ChevronDown size={16} className="text-gray-400 dark:text-gray-500" />
                 )}
               </button>
 
               {isDropdownOpen && (
-                <div className="absolute mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                <div className="absolute mt-2 w-32 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg dark:shadow-xl z-10">
                   <button
                     onClick={() => handleModelSelect("v1")}
-                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
-                      selectedModel === "v1" ? "bg-gray-100 font-medium" : ""
+                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ${
+                      selectedModel === "v1" 
+                        ? "bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white" 
+                        : "text-gray-700 dark:text-gray-300"
                     }`}
                   >
                     v1
                   </button>
                   <button
                     onClick={() => handleModelSelect("v2")}
-                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
-                      selectedModel === "v2" ? "bg-gray-100 font-medium" : ""
+                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ${
+                      selectedModel === "v2" 
+                        ? "bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white" 
+                        : "text-gray-700 dark:text-gray-300"
                     }`}
                   >
                     v2
@@ -222,7 +228,8 @@ const AutoResizeTextbox = () => {
               placeholder="Ask anything..."
               className="w-full min-h-[40px] max-h-[400px] pr-12 pl-3 py-3
                         resize-none overflow-y-auto focus:outline-none
-                        flex flex-col-reverse text-gray-800"
+                        flex flex-col-reverse text-gray-800 dark:text-gray-100
+                        bg-transparent placeholder-gray-500 dark:placeholder-gray-400"
               style={{
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",
@@ -236,8 +243,8 @@ const AutoResizeTextbox = () => {
                         focus:outline-none focus:ring-2 focus:ring-offset-2
                         transition-colors duration-200 ${
                           loading
-                            ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500"
+                            ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
+                            : "bg-emerald-600 dark:bg-emerald-500 text-white hover:bg-emerald-700 dark:hover:bg-emerald-400 focus:ring-emerald-500 dark:focus:ring-emerald-400"
                         }`}
             >
               {loading ? (
@@ -249,13 +256,13 @@ const AutoResizeTextbox = () => {
           </div>
 
           {/* Bottom Bar with Options */}
-          <div className="flex items-center justify-between px-4 py-2 border-t border-gray-100">
-            <div className="flex items-center space-x-2 text-xs text-gray-500">
+          <div className="flex items-center justify-between px-4 py-2 border-t border-gray-100 dark:border-gray-600">
+            <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
               <span>Focus: Accurate</span>
               <span>•</span>
               <span>Length: Balanced</span>
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-gray-500 dark:text-gray-400">
               {text.length > 0
                 ? `Characters: ${text.length}`
                 : "Powered by Dhamm AI"}
@@ -268,7 +275,7 @@ const AutoResizeTextbox = () => {
           <div className="flex justify-center mt-4">
             <button
               onClick={stopGeneration}
-              className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
+              className="flex items-center space-x-2 px-4 py-2 bg-red-600 dark:bg-red-500 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-400 transition-colors duration-200 shadow-md dark:shadow-lg"
             >
               <Square size={16} fill="white" />
               <span>Stop Generating</span>

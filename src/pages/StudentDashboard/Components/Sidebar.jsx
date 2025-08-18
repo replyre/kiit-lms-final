@@ -54,7 +54,7 @@ const StudentDashboardSidebar = ({ activeSection, setActiveSection }) => {
     <div
       className={`${
         isCollapsed ? "w-20" : "w-64"
-      } bg-white shadow-md transition-all duration-300 border-r border-gray-100 flex flex-col justify-between h-screen`}
+      } dark:bg-gray-900 bg-white  shadow-md transition-all duration-300 border-r border-gray-100 flex flex-col justify-between h-screen`}
       onMouseEnter={() => setIsCollapsed(false)}
       onMouseLeave={() => setIsCollapsed(true)}
     >
@@ -85,8 +85,8 @@ const StudentDashboardSidebar = ({ activeSection, setActiveSection }) => {
                 className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-all text-base
         ${
           activeSection === item.id
-            ? "bg-accent1/10 text-accent1 font-medium"
-            : "text-tertiary hover:bg-gray-100"
+            ? "bg-accent1/10 dark:bg-accent2 text-accent1 font-medium"
+            : "text-tertiary hover:bg-gray-100  dark:text-secondary dark:hover:bg-gray-400"
         }`}
               >
                 <span className="text-accent1 flex justify-center w-7">
@@ -110,7 +110,7 @@ const StudentDashboardSidebar = ({ activeSection, setActiveSection }) => {
       <div className="mb-6 px-2">
         <Link
           to="/student/profile/myprofile"
-          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-tertiary hover:bg-gray-100"
+          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-tertiary dark:text-secondary dark:hover:bg-gray-400 hover:bg-gray-100"
         >
           <span className="text-accent1 flex justify-center w-7">
             <FaUserGraduate size={22} />
@@ -126,7 +126,7 @@ const StudentDashboardSidebar = ({ activeSection, setActiveSection }) => {
         </Link>
         <Link
           to={"/student/profile/account"}
-          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-tertiary hover:bg-gray-100"
+          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-tertiary dark:text-secondary hover:bg-gray-100 dark:hover:bg-gray-400"
         >
           <span className="text-accent1 flex justify-center w-7">
             <Settings size={22} />
@@ -142,7 +142,7 @@ const StudentDashboardSidebar = ({ activeSection, setActiveSection }) => {
         </Link>
         <Link
           to={"/student/profile/help"}
-          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-tertiary hover:bg-gray-100"
+          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-tertiary dark:text-secondary hover:bg-gray-100 dark:hover:bg-gray-400"
         >
           <span className="text-accent1 flex justify-center w-7">
             <HelpCircle size={22} />

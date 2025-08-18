@@ -19,7 +19,7 @@ const Dashboard = () => {
   const { activeSection, setActiveSection } = useUtilityContext();
 
   return (
-    <div className="flex h-fit min-h-screen bg-gray-100 ">
+    <div className="flex h-fit min-h-screen dark:bg-gray-900 dark:text-white ">
       {/* Sidebar */}
       <StudentDashBoardSidebar
         activeSection={activeSection}

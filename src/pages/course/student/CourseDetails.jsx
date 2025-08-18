@@ -152,7 +152,7 @@ const CourseDetails = () => {
       return (
         <button
           onClick={() => setSelectedOption(title)}
-          className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700"
+          className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
         >
           {icon}
           <span>{title}</span>
@@ -167,10 +167,10 @@ const CourseDetails = () => {
       >
         <button
           onClick={() => toggleDropdown(menuKey)}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors ${
+          className={`flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
             openDropdown === menuKey
-              ? "bg-gray-100 text-emerald-600"
-              : "text-gray-700"
+              ? "bg-gray-100 dark:bg-gray-700 text-emerald-600 dark:text-emerald-400"
+              : "text-gray-700 dark:text-gray-300"
           }`}
         >
           {icon}
@@ -183,7 +183,7 @@ const CourseDetails = () => {
         </button>
 
         {openDropdown === menuKey && (
-          <div className="absolute left-0 mt-2 w-[440px] bg-white rounded-xl shadow-lg border border-gray-200 py-4 z-50">
+          <div className="absolute left-0 mt-2 w-[440px] bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-xl border border-gray-200 dark:border-gray-600 py-4 z-50">
             <div className="grid grid-cols-2 gap-4 px-4">
               {items.map((item) => (
                 <button
@@ -194,15 +194,15 @@ const CourseDetails = () => {
                   }}
                   className={`flex items-center space-x-3 p-4 rounded-lg transition-colors ${
                     selectedOption === item.label
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "hover:bg-gray-50 text-gray-700"
+                      ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
+                      : "hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                   }`}
                 >
                   <div
                     className={`p-2 rounded-lg ${
                       selectedOption === item.label
-                        ? "bg-emerald-100"
-                        : "bg-gray-100"
+                        ? "bg-emerald-100 dark:bg-emerald-800/50"
+                        : "bg-gray-100 dark:bg-gray-700"
                     }`}
                   >
                     {item.icon}
@@ -222,7 +222,7 @@ const CourseDetails = () => {
       case "Home": return <StudentHome setSelectedOption={setSelectedOption} />;
       case "Course": return (
           <div className="max-w-[1600px] mx-auto mt-4">
-            <div className="text-3xl pl-10 font-bold">Explore Course</div>
+            <div className="text-3xl pl-10 font-bold text-gray-900 dark:text-white">Explore Course</div>
             <div className="p-10 flex flex-col gap-2">
               <div className="flex gap-4 ">
                 <div className="flex flex-col w-[50%]">
@@ -243,22 +243,26 @@ const CourseDetails = () => {
       case "Activity": return <StudentActivitySection courseID={courseID} selectedID="0" />;
       case "Assignments": return <AssignmentsList />;
       case "Announcements": return <AllAnnouncements />;
-      default: return <div>Welcome to the Home Section</div>;
+      default: return <div className="text-gray-900 dark:text-white">Welcome to the Home Section</div>;
     }
   };
 
   if (loading) return <LoadingSpinner />;
-  if (!course) return <div>Course not found</div>;
+  if (!course) return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="text-gray-900 dark:text-white text-xl">Course not found</div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className=" mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-end items-center h-16">
             <div className="flex items-center space-x-4 relative z-[1000]">
               <abbr title="Announcements">
-                <button className="p-2  rounded-full  hover:bg-primary/20 transition-colors  text-primary/70 hover:text-primary">
+                <button className="p-2 rounded-full hover:bg-primary/20 dark:hover:bg-blue-500/20 transition-colors text-primary/70 dark:text-blue-400/70 hover:text-primary dark:hover:text-blue-400">
                   <TfiAnnouncement
                     onClick={() => setSelectedOption("Announcements")}
                   />
@@ -267,7 +271,7 @@ const CourseDetails = () => {
               <ProfileDropdown role={"student"} />
               <abbr title="Logout">
                 <button
-                  className="p-2 rounded-full hover:bg-red/40 transition-colors  text-red-600"
+                  className="p-2 rounded-full hover:bg-red/40 dark:hover:bg-red-500/20 transition-colors text-red-600 dark:text-red-400"
                   onClick={() => handleLogout()}
                 >
                   <FaSignOutAlt size={22} />
@@ -277,7 +281,7 @@ const CourseDetails = () => {
           </div>
         </div>
       </header>
-      {/* <Link to={"/its"} className="fixed h-16 w-16 bg-white border-black border-2 rounded  top-[60%] z-100 flex flex-col items-center justify-center"><Si1Panel className=" h-8 w-8  " /> ITS</Link> */}
+      {/* <Link to={"/its"} className="fixed h-16 w-16 bg-white dark:bg-gray-800 border-black dark:border-gray-600 border-2 rounded top-[60%] z-100 flex flex-col items-center justify-center"><Si1Panel className=" h-8 w-8 text-gray-900 dark:text-white" /> <span className="text-gray-900 dark:text-white">ITS</span></Link> */}
       
       {/* Course Banner */}
       <div className="flex h-fit w-[90%] m-auto pt-4">
@@ -286,10 +290,10 @@ const CourseDetails = () => {
           alt={course.name}
           className="w-[50%] h-[350px] object-cover rounded-lg"
         />
-        <div className=" inset-0  flex items-center">
+        <div className="inset-0 flex items-center">
           <div className="container mx-auto px-6">
-            <h1 className="text-4xl font-bold text-primary">{course.title}</h1>
-            <p className="text-xl text-primary/60 mt-2">
+            <h1 className="text-4xl font-bold text-primary dark:text-blue-400">{course.title}</h1>
+            <p className="text-xl text-primary/60 dark:text-blue-400/70 mt-2">
               {course.teacher?.name || "Unknown Instructor"}
             </p>
           </div>
@@ -301,7 +305,7 @@ const CourseDetails = () => {
                 href={liveMeeting.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex justify-center items-center gap-2 text-lg px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors animate-pulse"
+                className="flex justify-center items-center gap-2 text-lg px-6 py-2 bg-red-600 dark:bg-red-500 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-400 transition-colors animate-pulse"
               >
                 <MdLiveTv />
                 Join Live Class
@@ -309,7 +313,7 @@ const CourseDetails = () => {
             ) : (
               <button
                 disabled
-                className="flex justify-center items-center gap-2 text-lg px-6 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed"
+                className="flex justify-center items-center gap-2 text-lg px-6 py-2 bg-gray-400 dark:bg-gray-600 text-white dark:text-gray-300 rounded-lg cursor-not-allowed"
               >
                 <MdLiveTv />
                 No Live Class Now
@@ -320,15 +324,15 @@ const CourseDetails = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="bg-white shadow-sm sticky w-full top-0 z-40">
+      <nav className="absolute shadow-sm top-0 bg-red-400 dark:bg-red-500 w-full z-40">
         <button
           onClick={() => navigate(-1)}
-          className="absolute left-6 top-3 z-10 border border-black flex items-center space-x-2 px-4 py-2 bg-white/20 rounded-lg text-white hover:bg-gray-200 hover:text-black hover:shadow-md transition-all"
+          className="absolute left-6 top-3 z-10 border border-black dark:border-gray-600 flex items-center space-x-2 px-4 py-2 bg-white/20 dark:bg-gray-800/20 rounded-lg text-white hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-black dark:hover:text-white hover:shadow-md transition-all"
         >
-          <ArrowLeft className="h-5 w-5 text-black" />
-          <span className="text-black">Back</span>
+          <ArrowLeft className="h-5 w-5 text-black dark:text-white" />
+          <span className="text-black dark:text-white">Back</span>
         </button>
-        <div className="max-w-[80%] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="absolute top-0 min-w-full max-w-[80%] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex mx-auto items-center space-x-6">
               {Object.keys(navigationOptions).map((key) => renderDropdown(key))}
@@ -338,7 +342,7 @@ const CourseDetails = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="mx-auto px-4 sm:px-6 lg:px-8 py-8 ">
+      <main className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {renderContent()}
       </main>
     </div>

@@ -156,9 +156,9 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
 
   const getStatusStyle = (status) => {
     const styles = {
-      submitted: "text-emerald-600 bg-emerald-50 border-emerald-200",
-      in_progress: "text-blue-600 bg-blue-50 border-blue-200",
-      not_started: "text-gray-600 bg-gray-50 border-gray-200",
+      submitted: "text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-900/30 dark:border-emerald-700",
+      in_progress: "text-blue-600 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-900/30 dark:border-blue-700",
+      not_started: "text-gray-600 bg-gray-50 border-gray-200 dark:text-gray-300 dark:bg-gray-700/50 dark:border-gray-600",
     };
     return styles[status] || styles.not_started;
   };
@@ -180,10 +180,10 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
   // Combine loading states for the main loader
   if (loading || meetingsLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen dark:bg-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-accent1 border-opacity-50 mb-4"></div>
-          <p className="text-gray-600 text-lg">Loading...</p>
+          <p className="text-gray-600 dark:text-gray-300 text-lg">Loading...</p>
         </div>
       </div>
     );
@@ -193,7 +193,7 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
   const recentAssignments = getAllAssignments().slice(0, 4);
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-6 space-y-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Welcome Section */}
 
       {/* Quick Access Cards */}
@@ -202,87 +202,87 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
           {
             id: "Courseware",
             title: "My Courses",
-            icon: <BookOpen className="h-6 w-6 text-primary" />,
+            icon: <BookOpen className="h-6 w-6 text-primary dark:text-blue-400" />,
             count: coursesData?.user?.totalCourses || 0,
             description: "Active Courses",
-            bgClass: "bg-white",
-            color: "text-primary",
+            bgClass: "bg-white dark:bg-gray-800",
+            color: "text-primary dark:text-blue-400",
           },
           {
             id: "Assignment",
             title: "Assignments",
-            icon: <CheckSquare className="h-6 w-6 text-primary" />,
+            icon: <CheckSquare className="h-6 w-6 text-primary dark:text-blue-400" />,
             count: pendingAssignmentsCount,
             description: "Pending Tasks",
-            bgClass: "bg-white",
-            color: "text-primary",
+            bgClass: "bg-white dark:bg-gray-800",
+            color: "text-primary dark:text-blue-400",
           },
           {
             id: "LiveClass",
             title: "Live Classes",
-            icon: <Calendar className="h-6 w-6 text-primary" />,
+            icon: <Calendar className="h-6 w-6 text-primary dark:text-blue-400" />,
             // 5. Count is now dynamic based on context data
             count: getThisWeekMeetings().length,
             description: "This Week",
-            bgClass: "bg-white",
-            color: "text-primary",
+            bgClass: "bg-white dark:bg-gray-800",
+            color: "text-primary dark:text-blue-400",
           },
           {
             id: "MyStats",
             title: "Attendance",
-            icon: <UserCheck className="h-6 w-6 text-primary" />,
+            icon: <UserCheck className="h-6 w-6 text-primary dark:text-blue-400" />,
             count: `${Math.round(
               calculateAttendance(coursesData.user._id, coursesData.courses)
                 .overall.attendancePercentage
             ) || "-"
               }%`,
             description: "Overall Rate",
-            bgClass: "bg-white",
-            color: "text-primary",
+            bgClass: "bg-white dark:bg-gray-800",
+            color: "text-primary dark:text-blue-400",
           },
         ].map((item, index) => (
           <div
             key={index}
-            className={`${item.bgClass} p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer`}
+            className={`${item.bgClass} p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer`}
             onClick={() => setActiveSection(item.id)}
           >
             <div className="flex items-center space-x-3 mb-4">
-              <div className={`p-2 bg-gray-50 rounded-lg ${item.color}`}>
+              <div className={`p-2 bg-gray-50 dark:bg-gray-700 rounded-lg ${item.color}`}>
                 {item.icon}
               </div>
-              <h2 className="text-lg font-medium text-gray-800">
+              <h2 className="text-lg font-medium text-gray-800 dark:text-white">
                 {item.title}
               </h2>
             </div>
             <p className={`text-3xl font-bold mb-1 ${item.color}`}>
               {item.count}
             </p>
-            <p className="text-gray-500 text-sm">{item.description}</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">{item.description}</p>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Courses Section */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-              <Book className="h-5 w-5 mr-2 text-primary" />
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
+              <Book className="h-5 w-5 mr-2 text-primary dark:text-blue-400" />
               Recent Courses
             </h2>
             <button
-              className="text-accent1/80 hover:text-accent1 flex items-center text-sm font-medium"
+              className="text-accent1/80 hover:text-accent1 dark:text-blue-400 dark:hover:text-blue-300 flex items-center text-sm font-medium"
               onClick={() => setActiveSection("Courseware")}
             >
               View All <ChevronRight className="h-4 w-4 ml-1" />
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {coursesData.courses.slice(0, 4).map((course) => (
+            {coursesData.courses?.slice(0, 4).map((course) => (
               <Link
                 key={course.id}
                 to={`/student/course/${course._id}`}
-                className="group relative flex flex-col justify-between rounded-lg border border-gray-100 hover:border-2 hover:border-accent1/30 shadow-accent1 hover:shadow-md transition-all duration-200 overflow-hidden"
+                className="group relative flex flex-col justify-between rounded-lg border border-gray-100 dark:border-gray-600 hover:border-2 hover:border-accent1/30 dark:hover:border-blue-400/50 shadow-accent1 hover:shadow-md dark:hover:shadow-lg transition-all duration-200 overflow-hidden bg-white dark:bg-gray-700"
                 onClick={() => {
                   course.available
                     ? navigate(`/student/course/${course._id}`)
@@ -301,36 +301,36 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
 
                 {/* Course Details */}
                 <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-800 group-hover:text-primary transition-colors">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
                     {course.title}
                   </h3>
-                  <p className="text-sm text-gray-500 mt-2 line-clamp-3">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 line-clamp-3">
                     {course.aboutCourse}
                   </p>
                 </div>
 
                 {/* Course Footer */}
-                <div className="p-3 bg-gray-50 border-t border-gray-100">
+                <div className="p-3 bg-gray-50 dark:bg-gray-600 border-t border-gray-100 dark:border-gray-600">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                     <div className="flex items-center">
-                      <span className="px-2 py-1 bg-gray-200 text-gray-700 text-xs font-medium rounded-full truncate max-w-[120px] sm:max-w-[150px]">
-                        {course.semester.name}
+                      <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-full truncate max-w-[120px] sm:max-w-[150px]">
+                        {course.semester?.name}
                       </span>
                     </div>
 
                     <div className="flex items-center space-x-3 text-xs">
                       <div className="flex items-center space-x-1">
-                        <CheckSquare className="h-3.5 w-3.5 text-blue-500" />
-                        <span className="font-medium text-gray-700">{course.assignmentCount}</span>
-                        <span className="text-gray-500 hidden sm:inline">Assignments</span>
-                        <span className="text-gray-500 sm:hidden">Assign.</span>
+                        <CheckSquare className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400" />
+                        <span className="font-medium text-gray-700 dark:text-gray-300">{course.assignmentCount}</span>
+                        <span className="text-gray-500 dark:text-gray-400 hidden sm:inline">Assignments</span>
+                        <span className="text-gray-500 dark:text-gray-400 sm:hidden">Assign.</span>
                       </div>
-                      <div className="w-px h-3 bg-gray-300"></div>
+                      <div className="w-px h-3 bg-gray-300 dark:bg-gray-500"></div>
                       <div className="flex items-center space-x-1">
-                        <Book className="h-3.5 w-3.5 text-emerald-500" />
-                        <span className="font-medium text-gray-700">{course.lectureCount}</span>
-                        <span className="text-gray-500 hidden sm:inline">Lectures</span>
-                        <span className="text-gray-500 sm:hidden">Lect.</span>
+                        <Book className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" />
+                        <span className="font-medium text-gray-700 dark:text-gray-300">{course.lectureCount}</span>
+                        <span className="text-gray-500 dark:text-gray-400 hidden sm:inline">Lectures</span>
+                        <span className="text-gray-500 dark:text-gray-400 sm:hidden">Lect.</span>
                       </div>
                     </div>
                   </div>
@@ -341,10 +341,10 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
         </div>
 
         {/* Assignment Summary Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 h-fit">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 h-fit">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-              <Layers className="h-5 w-5 mr-2 text-primary" />
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
+              <Layers className="h-5 w-5 mr-2 text-primary dark:text-blue-400" />
               Assignment Status
             </h2>
           </div>
@@ -358,14 +358,14 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
       </div>
 
       {/* Upcoming Events Section - Now Dynamic */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-            <Calendar className="h-5 w-5 mr-2 text-primary" />
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
+            <Calendar className="h-5 w-5 mr-2 text-primary dark:text-blue-400" />
             Upcoming Live Classes
           </h2>
           <button
-            className="text-accent1/80 hover:text-accent1 flex items-center text-sm font-medium"
+            className="text-accent1/80 hover:text-accent1 dark:text-blue-400 dark:hover:text-blue-300 flex items-center text-sm font-medium"
             onClick={() => setActiveSection("LiveClass")}
           >
             View All <ChevronRight className="h-4 w-4 ml-1" />
@@ -377,7 +377,7 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
             {upcomingEvents.map((event) => (
               <div
                 key={event._id}
-                className="group flex flex-col bg-white rounded-lg border border-gray-100 hover:border-accent1/60 hover:shadow-md transition-all duration-200 overflow-hidden cursor-pointer"
+                className="group flex flex-col bg-white dark:bg-gray-700 rounded-lg border border-gray-100 dark:border-gray-600 hover:border-accent1/60 dark:hover:border-blue-400/60 hover:shadow-md dark:hover:shadow-lg transition-all duration-200 overflow-hidden cursor-pointer"
                 onClick={() => window.open(event.link, '_blank')}
               >
                 <div className="relative h-40">
@@ -389,9 +389,9 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                   <div className="absolute bottom-3 left-3 right-3">
-                    <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg inline-flex items-center">
-                      <Calendar className="h-3.5 w-3.5 text-primary mr-1.5" />
-                      <span className="text-xs font-medium">
+                    <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-3 py-1.5 rounded-lg inline-flex items-center">
+                      <Calendar className="h-3.5 w-3.5 text-primary dark:text-blue-400 mr-1.5" />
+                      <span className="text-xs font-medium text-gray-800 dark:text-gray-200">
                         {formatDate(event.start)} · {formatTime(event.start)}
                       </span>
                     </div>
@@ -399,41 +399,41 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
                 </div>
 
                 <div className="p-4">
-                  <h3 className="text-base font-medium text-gray-800 group-hover:text-primary transition-colors mb-1">
+                  <h3 className="text-base font-medium text-gray-800 dark:text-white group-hover:text-primary dark:group-hover:text-blue-400 transition-colors mb-1">
                     {event.subject}
                   </h3>
-                  <p className="text-sm text-gray-500 line-clamp-2">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                     {event.description}
                   </p>
                 </div>
 
-                <div className="mt-auto border-t border-gray-100 p-3 flex items-center justify-between">
-                  <span className="text-xs font-medium text-accent1">
+                <div className="mt-auto border-t border-gray-100 dark:border-gray-600 p-3 flex items-center justify-between">
+                  <span className="text-xs font-medium text-accent1 dark:text-blue-400">
                     Join Class
                   </span>
-                  <ArrowRight className="h-4 w-4 text-accent1" />
+                  <ArrowRight className="h-4 w-4 text-accent1 dark:text-blue-400" />
                 </div>
               </div>
             ))}
           </div>
         ) : (
           <div className="text-center py-8">
-            <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-500 mb-2">No Upcoming Classes</h3>
-            <p className="text-gray-400">New classes scheduled by your teachers will appear here.</p>
+            <Calendar className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-500 dark:text-gray-400 mb-2">No Upcoming Classes</h3>
+            <p className="text-gray-400 dark:text-gray-500">New classes scheduled by your teachers will appear here.</p>
           </div>
         )}
       </div>
 
       {/* Assignments Section - Now Dynamic */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-            <CheckSquare className="h-5 w-5 mr-2 text-primary" />
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
+            <CheckSquare className="h-5 w-5 mr-2 text-primary dark:text-blue-400" />
             Recent Assignments
           </h2>
           <button
-            className="text-accent1/80 hover:text-accent1 flex items-center text-sm font-medium"
+            className="text-accent1/80 hover:text-accent1 dark:text-blue-400 dark:hover:text-blue-300 flex items-center text-sm font-medium"
             onClick={() => setActiveSection("Assignment")}
           >
             View All <ChevronRight className="h-4 w-4 ml-1" />
@@ -444,17 +444,17 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
           {recentAssignments.length > 0 ? (
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">
+                <tr className="border-b border-gray-100 dark:border-gray-600">
+                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium text-sm">
                     Assignment
                   </th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">
+                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium text-sm">
                     Course
                   </th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">
+                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium text-sm">
                     Due Date
                   </th>
-                  <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">
+                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium text-sm">
                     Status
                   </th>
                 </tr>
@@ -465,33 +465,33 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
                   return (
                     <tr
                       key={assignment._id}
-                      className="border-b border-gray-50 hover:bg-accent2/30 cursor-pointer"
+                      className="border-b border-gray-50 dark:border-gray-700 hover:bg-accent2/30 dark:hover:bg-gray-700/50 cursor-pointer"
                       onClick={() => handleAssignmentClick(assignment)}
                     >
                       <td className="py-3 px-4">
                         <div className="flex items-center">
-                          <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center text-primary mr-3">
+                          <div className="h-8 w-8 rounded-md bg-primary/10 dark:bg-blue-500/20 flex items-center justify-center text-primary dark:text-blue-400 mr-3">
                             <CheckSquare className="h-4 w-4" />
                           </div>
-                          <span className="font-medium text-gray-800">
+                          <span className="font-medium text-gray-800 dark:text-white">
                             {assignment.title}
                           </span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-500">
+                      <td className="py-3 px-4 text-sm text-gray-500 dark:text-gray-400">
                         {assignment.courseName}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center">
-                          <Clock className="h-4 w-4 text-gray-400 mr-1.5" />
-                          <span className="text-sm text-gray-600">
+                          <Clock className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-1.5" />
+                          <span className="text-sm text-gray-600 dark:text-gray-300">
                             {formatDate(assignment.dueDate)}
                           </span>
                         </div>
                       </td>
                       <td className="py-3 px-4">
                         <span
-                          className={`px-2.5 py-1 rounded-md text-xs font-medium ${getStatusStyle(status)}`}
+                          className={`px-2.5 py-1 rounded-md text-xs font-medium border ${getStatusStyle(status)}`}
                         >
                           {getStatusLabel(status)}
                         </span>
@@ -503,9 +503,9 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
             </table>
           ) : (
             <div className="text-center py-8">
-              <CheckSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-500 mb-2">No Assignments Yet</h3>
-              <p className="text-gray-400">Assignments will appear here when they are created.</p>
+              <CheckSquare className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-500 dark:text-gray-400 mb-2">No Assignments Yet</h3>
+              <p className="text-gray-400 dark:text-gray-500">Assignments will appear here when they are created.</p>
             </div>
           )}
         </div>

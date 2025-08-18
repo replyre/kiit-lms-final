@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -31,6 +31,14 @@ import ITS from "./pages/Its/Its.jsx";
 import StudentAssignmentSectionCourse from "./pages/Assignment/ShowAssignmentCourse.jsx";
 import { MeetingProvider } from "./context/MeetingContext.js";
 const App = () => {
+   useEffect(() => {
+  const theme = localStorage.getItem("theme") || "light";
+  if (theme === "dark") {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+}, []);
   return (
     <AuthProvider>
       <UtilityProvider>
@@ -51,7 +59,7 @@ const Layout = () => {
   const hideNavbarRoutes = ["/login", "/register"];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen dark:bg-gray-900 bg-white">
       {/* Conditionally render Navbar */}
       {/* {!hideNavbarRoutes.includes(location.pathname) && <Navbar />} */}
 

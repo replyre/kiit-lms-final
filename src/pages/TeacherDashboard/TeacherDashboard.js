@@ -52,18 +52,18 @@ const TeacherDashboard = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
       {/* Sidebar */}
       <div
         className={`${
           isCollapsed ? "w-20" : "w-64"
-        } bg-white shadow-md transition-all duration-300 border-r border-gray-100 flex flex-col justify-between`}
+        } bg-white dark:bg-gray-800 shadow-md dark:shadow-xl transition-all duration-300 border-r border-gray-100 dark:border-gray-600 flex flex-col justify-between`}
         onMouseEnter={() => setIsCollapsed(false)}
         onMouseLeave={() => setIsCollapsed(true)}
       >
         <div>
           {/* Header Logo */}
-          <div className="mt-6 text-black flex items-center justify-center px-4 gap-2">
+          <div className="mt-6 text-black dark:text-white flex items-center justify-center px-4 gap-2">
             {isCollapsed ? (
               <img
                 src="/logo.png"
@@ -88,12 +88,12 @@ const TeacherDashboard = () => {
                   className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-all text-base
         ${
           activeSection === item.id
-            ? "bg-accent1/10 text-accent1 font-medium"
-            : "text-tertiary hover:bg-gray-100"
+            ? "bg-accent1/10 dark:bg-accent1/20 text-accent1 dark:text-accent1/90 font-medium"
+            : "text-tertiary dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
         }`}
                 >
                   {/* Icon remains visible */}
-                  <span className="text-accent1 flex justify-center w-7">
+                  <span className="text-accent1 dark:text-accent1/90 flex justify-center w-7">
                     {React.cloneElement(item.icon, { size: 22 })}
                   </span>
                   {/* Text fades in and out */}
@@ -116,9 +116,9 @@ const TeacherDashboard = () => {
         <div className="mb-6 px-2">
           <Link
             to={"/teacher/profile/myprofile"}
-            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-tertiary hover:bg-gray-100"
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-tertiary dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            <span className="text-accent1 flex justify-center w-7">
+            <span className="text-accent1 dark:text-accent1/90 flex justify-center w-7">
               <FaUserCircle size={22} />
             </span>
             <span
@@ -132,9 +132,9 @@ const TeacherDashboard = () => {
           </Link>
           <Link
             to={"/teacher/profile/account"}
-            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-tertiary hover:bg-gray-100"
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-tertiary dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            <span className="text-accent1 flex justify-center w-7">
+            <span className="text-accent1 dark:text-accent1/90 flex justify-center w-7">
               <Settings size={22} />
             </span>
             <span
@@ -148,9 +148,9 @@ const TeacherDashboard = () => {
           </Link>
           <Link
             to={"/teacher/profile/help"}
-            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-tertiary hover:bg-gray-100"
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-tertiary dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            <span className="text-accent1 flex justify-center w-7">
+            <span className="text-accent1 dark:text-accent1/90 flex justify-center w-7">
               <HelpCircle size={22} />
             </span>
             <span
@@ -163,7 +163,7 @@ const TeacherDashboard = () => {
             </span>
           </Link>
           <button
-            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-red-500 hover:bg-red-100 mt-1"
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-base text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 mt-1 transition-colors"
             onClick={handleLogout}
           >
             <span className="flex justify-center w-7">
@@ -182,8 +182,8 @@ const TeacherDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="p-8 overflow-auto max-auto  w-full">
-        <div className="bg-white rounded-xl shadow-sm h-full   ">
+      <div className="p-8 overflow-auto max-auto w-full">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-xl h-full border border-gray-100 dark:border-gray-600">
           {activeSection === "Dashboard" && <TeacherDashboard2 />}
           {activeSection === "myCourses" && <TeacherCourses />}
           {activeSection === "NewMeetings" && <TeacherCreateMeeting />}

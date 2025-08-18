@@ -82,17 +82,17 @@ const TeacherDashboard2 = () => {
   // 4. UPDATE loading and error states to consider both data sources
   if (loading || meetingsLoading) {
     return (
-      <div className="flex justify-center items-center h-screen w-full">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mr-3"></div>
-        <p className="text-xl text-gray-600">Loading Dashboard...</p>
+      <div className="flex justify-center items-center h-screen w-full bg-white dark:bg-gray-800">
+        <div className="animate-spin h-8 w-8 border-4 border-primary dark:border-primary/80 border-t-transparent rounded-full mr-3"></div>
+        <p className="text-xl text-gray-600 dark:text-gray-300">Loading Dashboard...</p>
       </div>
     );
   }
 
   if (error || meetingsError) {
     return (
-      <div className="flex justify-center items-center h-screen w-full">
-        <p className="text-xl text-red-600">{error || meetingsError}</p>
+      <div className="flex justify-center items-center h-screen w-full bg-white dark:bg-gray-800">
+        <p className="text-xl text-red-600 dark:text-red-400">{error || meetingsError}</p>
       </div>
     );
   }
@@ -103,13 +103,13 @@ const TeacherDashboard2 = () => {
   }
 
   return (
-    <div className="space-y-6 px-[15vh] py-2 mx-auto w-full">
+    <div className="space-y-6 px-[15vh] py-2 mx-auto w-full bg-white dark:bg-gray-800">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-sf">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-sf">
             Welcome back, {dashboardData.user.name}!
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 dark:text-gray-300 mt-1">
             Here's what's happening in your classes today.
           </p>
         </div>
@@ -118,76 +118,76 @@ const TeacherDashboard2 = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Active Courses */}
-        <div className="bg-white border border-gr-200 p-6 rounded-lg shadow-sm transition-all hover:shadow-md">
+        <div className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-6 rounded-lg shadow-sm dark:shadow-lg transition-all hover:shadow-md dark:hover:shadow-xl">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="text-primary">
+            <div className="text-primary dark:text-primary/90">
               <Book className="h-6 w-6" />
             </div>
-            <h2 className=" font-semibold text-gray-800">
+            <h2 className="font-semibold text-gray-800 dark:text-gray-200">
               Active Courses
             </h2>
           </div>
-          <p className="text-4xl font-bold text-gray-800">
+          <p className="text-4xl font-bold text-gray-800 dark:text-white">
             {activeCoursesCount}
           </p>
-          <div className="mt-4 flex items-center space-x-2 text-primary">
+          <div className="mt-4 flex items-center space-x-2 text-primary dark:text-primary/90">
             <TrendingUp className="h-4 w-4" />
             <span className="text-sm">Across all semesters</span>
           </div>
         </div>
 
         {/* Total Students */}
-        <div className="bg-white border border-gr-200 p-6 rounded-lg shadow-sm transition-all hover:shadow-md">
+        <div className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-6 rounded-lg shadow-sm dark:shadow-lg transition-all hover:shadow-md dark:hover:shadow-xl">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="text-primary">
+            <div className="text-primary dark:text-primary/90">
               <Users className="h-6 w-6" />
             </div>
-            <h2 className=" font-semibold text-gray-800">
+            <h2 className="font-semibold text-gray-800 dark:text-gray-200">
               Total Students
             </h2>
           </div>
-          <p className="text-4xl font-bold text-gray-800">
+          <p className="text-4xl font-bold text-gray-800 dark:text-white">
             {totalStudentsCount}
           </p>
-          <div className="mt-4 flex items-center space-x-2 text-primary">
+          <div className="mt-4 flex items-center space-x-2 text-primary dark:text-primary/90">
             <TrendingUp className="h-4 w-4" />
             <span className="text-sm">Unique students enrolled</span>
           </div>
         </div>
 
         {/* Pending Grades */}
-        <div className="bg-white border border-gr-200 p-6 rounded-lg shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-green-50">
+        <div className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-6 rounded-lg shadow-sm dark:shadow-lg cursor-pointer transition-all hover:shadow-md dark:hover:shadow-xl  ">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="text-primary">
+            <div className="text-primary dark:text-primary/90">
               <CheckSquare className="h-6 w-6" />
             </div>
-            <h2 className=" font-semibold text-gray-800">
+            <h2 className="font-semibold text-gray-800 dark:text-gray-200">
               Pending Grades
             </h2>
           </div>
-          <p className="text-4xl font-bold text-gray-800">
+          <p className="text-4xl font-bold text-gray-800 dark:text-white">
             {pendingGradesCount}
           </p>
-          <div className="mt-4 flex items-center space-x-2 text-primary">
+          <div className="mt-4 flex items-center space-x-2 text-primary dark:text-primary/90">
             <Bell className="h-4 w-4" />
             <span className="text-sm">Submissions to review</span>
           </div>
         </div>
 
         {/* Upcoming Lectures */}
-        <div className="bg-white border border-gr-200 p-6 rounded-lg shadow-sm cursor-pointer transition-all hover:shadow-md hover:bg-green-50">
+        <div className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-6 rounded-lg shadow-sm dark:shadow-lg cursor-pointer transition-all hover:shadow-md dark:hover:shadow-xl ">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="text-primary">
+            <div className="text-primary dark:text-primary/90">
               <Video className="h-6 w-6" />
             </div>
-            <h2 className=" font-semibold text-gray-800">
+            <h2 className="font-semibold text-gray-800 dark:text-gray-200">
               Upcoming Lectures
             </h2>
           </div>
-          <p className="text-4xl font-bold text-gray-800">
+          <p className="text-4xl font-bold text-gray-800 dark:text-white">
             {upcomingLecturesCount}
           </p>
-          <div className="mt-4 flex items-center space-x-2 text-primary">
+          <div className="mt-4 flex items-center space-x-2 text-primary dark:text-primary/90">
             <Calendar className="h-4 w-4" />
             <span className="text-sm">Scheduled this semester</span>
           </div>

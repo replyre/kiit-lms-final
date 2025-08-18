@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Text,
   Save,
@@ -16,7 +16,9 @@ const defaultColorScheme = "green"
 
 const AccountSettings = () => {
   const [fontSize, setFontSize] = useState("text-base"); // Default font size
-  const [theme, setTheme] = useState("light"); // Default theme
+  const [theme, setTheme] = useState(() => {
+  return localStorage.getItem("theme") || "light";
+});// Default theme
   const [notifications, setNotifications] = useState({
     email: true,
     push: true,
@@ -24,16 +26,19 @@ const AccountSettings = () => {
   });
   const [language, setLanguage] = useState("english");
   const [isSettingsSaved, setIsSettingsSaved] = useState(false);
-  const [colorScheme, setColorScheme] = useState(defaultColorScheme);
+  const [colorScheme, setColorScheme] = useState(() => {
+    return localStorage.getItem("colorScheme") || defaultColorScheme;
+  });
   const navigate = useNavigate();
 
   const handleFontSizeChange = (size) => {
     setFontSize(size);
   };
 
-  const handleThemeChange = (newTheme) => {
-    setTheme(newTheme);
-  };
+ const handleThemeChange = (newTheme) => {
+  setTheme(newTheme);
+  document.body.setAttribute("data-theme", newTheme);
+};
 
   const handleNotificationChange = (type) => {
     setNotifications({
@@ -41,9 +46,29 @@ const AccountSettings = () => {
       [type]: !notifications[type],
     });
   };
+ useEffect(() => {
+    document.body.setAttribute("data-color-scheme", colorScheme);
+    localStorage.setItem("colorScheme", colorScheme);
+    document.body.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+  }, [colorScheme,theme]);
 
+useEffect(() => {
+  if (theme === "dark") {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+  document.body.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+}, [theme]);
+
+  useEffect(() => {
+    document.body.setAttribute("data-color-scheme", colorScheme);
+  }, []);
   const handleColorSchemeChange = (scheme) => {
     setColorScheme(scheme);
+    document.body.setAttribute("data-color-scheme", scheme);
   };
 
   const handleSaveSettings = () => {
