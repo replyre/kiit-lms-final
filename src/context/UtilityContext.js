@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const UtilityContext = createContext({
   activeSection: "Dashboard",
@@ -16,8 +16,23 @@ export const useUtilityContext = () => {
 };
 
 const UtilityProvider = ({ children }) => {
-  const [activeSection, setActiveSection] = useState("Dashboard");
+  // Helper to get user role for keying
+  const getRole = () => {
+    const user = localStorage.getItem("user");
+    return user ? JSON.parse(user).role : "student";
+  };
+
+  const [activeSection, setActiveSection] = useState(() => {
+    const role = getRole();
+    return localStorage.getItem(`${role}_activeSection`) || "Dashboard";
+  });
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
+
+  useEffect(() => {
+    const role = getRole();
+    localStorage.setItem(`${role}_activeSection`, activeSection);
+  }, [activeSection]);
+
   return (
     <UtilityContext.Provider
       value={{
