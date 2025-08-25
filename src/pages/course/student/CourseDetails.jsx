@@ -9,6 +9,8 @@ import {
   BarChart2,
   MonitorPlay,
   Activity,
+  Home,
+  Book,
 } from "lucide-react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { getCoursesById } from "../../../services/course.service";
@@ -144,78 +146,93 @@ const CourseDetails = () => {
     setOpenDropdown(openDropdown === menu ? null : menu);
   };
 
-  const renderDropdown = (menuKey) => {
-    if (!navigationOptions[menuKey]) return null;
-    const { title, icon, items } = navigationOptions[menuKey];
+ const renderDropdown = (menuKey) => {
+  if (!navigationOptions[menuKey]) return null;
+  const { title, icon, items } = navigationOptions[menuKey];
 
-    if (!items || items.length === 0) {
-      return (
-        <button
-          onClick={() => setSelectedOption(title)}
-          className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
-        >
-          {icon}
-          <span>{title}</span>
-        </button>
-      );
-    }
+  // Check if this tab or any of its sub-items are selected
+  const isTabSelected = selectedOption === title || (items && items.some(item => selectedOption === item.label));
 
+  if (!items || items.length === 0) {
     return (
-      <div
-        className="relative dropdown-container"
-        ref={(el) => (dropdownRefs.current[menuKey] = el)}
+      <button
+        onClick={() => setSelectedOption(title)}
+        className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+          selectedOption === title
+            ? "text-accent1 dark:text-accent1"
+            : "text-gray-700 dark:text-gray-300"
+        }`}
       >
-        <button
-          onClick={() => toggleDropdown(menuKey)}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-            openDropdown === menuKey
-              ? "bg-gray-100 dark:bg-gray-700 text-emerald-600 dark:text-emerald-400"
-              : "text-gray-700 dark:text-gray-300"
-          }`}
-        >
-          {icon}
-          <span>{title}</span>
-          <ChevronDown
-            className={`w-4 h-4 transition-transform ${
-              openDropdown === menuKey ? "rotate-180" : ""
-            }`}
-          />
-        </button>
+        {icon}
+        <span>{title}</span>
+        {/* Add line below when selected */}
+        {selectedOption === title && (
+          <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-full h-1 bg-accent1 dark:bg-accent1 rounded-full"></div>
+        )}
+      </button>
+    );
+  }
 
-        {openDropdown === menuKey && (
-          <div className="absolute left-0 mt-2 w-[440px] bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-xl border border-gray-200 dark:border-gray-600 py-4 z-50">
-            <div className="grid grid-cols-2 gap-4 px-4">
-              {items.map((item) => (
-                <button
-                  key={item.label}
-                  onClick={() => {
-                    setSelectedOption(item.label);
-                    setOpenDropdown(null);
-                  }}
-                  className={`flex items-center space-x-3 p-4 rounded-lg transition-colors ${
+  return (
+    <div
+      className="relative dropdown-container"
+      ref={(el) => (dropdownRefs.current[menuKey] = el)}
+    >
+      <button
+        onClick={() => toggleDropdown(menuKey)}
+        className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+          openDropdown === menuKey || isTabSelected
+            ? "bg-gray-100 dark:bg-gray-700 text-accent1 dark:text-accent1"
+            : "text-gray-700 dark:text-gray-300"
+        }`}
+      >
+        {icon}
+        <span>{title}</span>
+        <ChevronDown
+          className={`w-4 h-4 transition-transform ${
+            openDropdown === menuKey ? "rotate-180" : ""
+          }`}
+        />
+        {/* Add line below when this tab or any sub-item is selected */}
+        {isTabSelected && (
+          <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-full h-1 bg-accent1 dark:bg-accent1 rounded-full"></div>
+        )}
+      </button>
+
+      {openDropdown === menuKey && (
+        <div className="absolute left-0 mt-2 w-[440px] bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-xl border border-gray-200 dark:border-gray-600 py-4 z-50">
+          <div className="grid grid-cols-2 gap-4 px-4">
+            {items.map((item) => (
+              <button
+                key={item.label}
+                onClick={() => {
+                  setSelectedOption(item.label);
+                  setOpenDropdown(null);
+                }}
+                className={`flex items-center space-x-3 p-4 rounded-lg transition-colors ${
+                  selectedOption === item.label
+                    ? "bg-accent1/10 dark:bg-accent1/20 text-accent1 dark:text-accent1"
+                    : "hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                }`}
+              >
+                <div
+                  className={`p-2 rounded-lg ${
                     selectedOption === item.label
-                      ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                      : "hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                      ? "bg-accent1/20 dark:bg-accent1/30"
+                      : "bg-gray-100 dark:bg-gray-700"
                   }`}
                 >
-                  <div
-                    className={`p-2 rounded-lg ${
-                      selectedOption === item.label
-                        ? "bg-emerald-100 dark:bg-emerald-800/50"
-                        : "bg-gray-100 dark:bg-gray-700"
-                    }`}
-                  >
-                    {item.icon}
-                  </div>
-                  <span className="font-medium text-left">{item.label}</span>
-                </button>
-              ))}
-            </div>
+                  {item.icon}
+                </div>
+                <span className="font-medium text-left">{item.label}</span>
+              </button>
+            ))}
           </div>
-        )}
-      </div>
-    );
-  };
+        </div>
+      )}
+    </div>
+  );
+};
 
   const renderContent = () => {
     switch (selectedOption) {
@@ -255,7 +272,7 @@ const CourseDetails = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50  dark:bg-gray-900">
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className=" mx-auto px-4 sm:px-6 lg:px-8">
@@ -284,44 +301,33 @@ const CourseDetails = () => {
       {/* <Link to={"/its"} className="fixed h-16 w-16 bg-white dark:bg-gray-800 border-black dark:border-gray-600 border-2 rounded top-[60%] z-100 flex flex-col items-center justify-center"><Si1Panel className=" h-8 w-8 text-gray-900 dark:text-white" /> <span className="text-gray-900 dark:text-white">ITS</span></Link> */}
       
       {/* Course Banner */}
-      <div className="flex h-fit w-[90%] m-auto pt-4">
-        <img
-          src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=2340&q=80"
-          alt={course.name}
-          className="w-[50%] h-[350px] object-cover rounded-lg"
-        />
-        <div className="inset-0 flex items-center">
-          <div className="container mx-auto px-6">
-            <h1 className="text-4xl font-bold text-primary dark:text-blue-400">{course.title}</h1>
-            <p className="text-xl text-primary/60 dark:text-blue-400/70 mt-2">
-              {course.teacher?.name || "Unknown Instructor"}
-            </p>
-          </div>
-          
-          {/* 4. DYNAMIC "JOIN LIVE CLASS" BUTTON */}
-          <div className="bottom-[50%] absolute right-8">
-            {liveMeeting ? (
-              <a
-                href={liveMeeting.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex justify-center items-center gap-2 text-lg px-6 py-2 bg-red-600 dark:bg-red-500 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-400 transition-colors animate-pulse"
-              >
-                <MdLiveTv />
-                Join Live Class
-              </a>
-            ) : (
-              <button
-                disabled
-                className="flex justify-center items-center gap-2 text-lg px-6 py-2 bg-gray-400 dark:bg-gray-600 text-white dark:text-gray-300 rounded-lg cursor-not-allowed"
-              >
-                <MdLiveTv />
-                No Live Class Now
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+   <div className="w-[90%] m-auto pt-4">
+  {/* Header Section */}
+  <div className="flex items-center justify-between mb-6">
+    <div className="flex-1">
+      <h1 className="text-4xl font-bold text-primary dark:text-blue-400">
+       {course.title}
+      </h1>
+      <p className="text-xl text-primary/60 dark:text-blue-400/70 mt-2">
+          {course.teacher?.name }
+      </p>
+    </div>
+    
+    {/* Live Class Button */}
+    <div className="ml-8">
+      <button
+        disabled
+        className="flex justify-center items-center gap-2 text-lg px-6 py-2 bg-gray-400 dark:bg-gray-600 text-white dark:text-gray-300 rounded-lg cursor-not-allowed"
+      >
+        <MdLiveTv />
+        No Live Class Now
+      </button>
+    </div>
+  </div>
+
+  {/* Tab Navigation */}
+ 
+</div>
 
       {/* Navigation */}
       <nav className="absolute shadow-sm top-0 bg-red-400 dark:bg-red-500 w-full z-40">
@@ -332,7 +338,7 @@ const CourseDetails = () => {
           <ArrowLeft className="h-5 w-5 text-black dark:text-white" />
           <span className="text-black dark:text-white">Back</span>
         </button>
-        <div className="absolute top-0 min-w-full max-w-[80%] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="absolute top-40 left-6 mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex mx-auto items-center space-x-6">
               {Object.keys(navigationOptions).map((key) => renderDropdown(key))}
