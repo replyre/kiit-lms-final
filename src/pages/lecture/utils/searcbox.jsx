@@ -1,19 +1,16 @@
 import React, { useRef, useEffect, useState } from "react";
 import {
   Search,
-  Upload,
   Sparkles,
   ChevronDown,
-  Link2,
-  Image,
   Loader,
   Square,
   ChevronUp,
+  Send,
 } from "lucide-react";
-
 import ReactMarkdown from "react-markdown";
 
-const AutoResizeTextbox = () => {
+const AutoResizeTextbox = ({ selectedLecture }) => {
   const [text, setText] = useState("");
   const [selectedModel, setSelectedModel] = useState("v1");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -22,17 +19,16 @@ const AutoResizeTextbox = () => {
   const [displayedResponse, setDisplayedResponse] = useState("");
   const [responseIndex, setResponseIndex] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState([]);
 
   const textareaRef = useRef(null);
-  const containerRef = useRef(null);
   const responseRef = useRef(null);
 
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = "auto";
-      textarea.style.height = `${textarea.scrollHeight}px`;
-      textarea.scrollTop = textarea.scrollHeight;
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
     }
   }, [text]);
 
@@ -42,22 +38,19 @@ const AutoResizeTextbox = () => {
       const timer = setTimeout(() => {
         setDisplayedResponse((prev) => prev + response[responseIndex]);
         setResponseIndex((prevIndex) => prevIndex + 1);
-      }, 15); // Speed of typewriter effect
-
+      }, 15);
       return () => clearTimeout(timer);
     } else if (responseIndex >= response.length && isGenerating) {
       setIsGenerating(false);
     }
   }, [response, responseIndex, isGenerating]);
 
-  // When response is set, immediately start displaying it
   useEffect(() => {
     if (response && responseIndex === 0) {
       setIsGenerating(true);
     }
   }, [response, responseIndex]);
 
-  // Auto scroll response container
   useEffect(() => {
     if (responseRef.current) {
       responseRef.current.scrollTop = responseRef.current.scrollHeight;
@@ -77,8 +70,14 @@ const AutoResizeTextbox = () => {
     setIsDropdownOpen(false);
   };
 
-  const handleSearch = async () => {
-    if (!text.trim()) return;
+  const handleQuickQuestion = (question) => {
+    setText(question);
+    handleSearch(question);
+  };
+
+  const handleSearch = async (customText = null) => {
+    const questionText = customText || text;
+    if (!questionText.trim()) return;
 
     setLoading(true);
     setResponse("");
@@ -86,27 +85,26 @@ const AutoResizeTextbox = () => {
     setResponseIndex(0);
     setIsGenerating(true);
 
+    // Add question to conversation history
+    const newQuestion = {
+      type: 'question',
+      content: questionText,
+      timestamp: new Date().toISOString()
+    };
+
     try {
-      // Use a CORS proxy to handle the HTTP request
-      const apiUrl = "http://16.171.234.123:4000/ask";
-
-      // Using CORS Anywhere as a public proxy (you may want to set up your own)
-      const corsProxyUrl = "https://cors-anywhere.herokuapp.com/";
-      // Alternative public proxies you can try:
-      // const corsProxyUrl = "https://api.allorigins.win/raw?url=";
-      // const corsProxyUrl = "https://corsproxy.io/?";
-
-      const proxyUrl = `${corsProxyUrl}${apiUrl}`;
-
       const res = await fetch(
-        "https://ca-dev-chatbot.whitegrass-ce3c3d28.centralindia.azurecontainerapps.io/api/chat ",
+        "https://ca-dev-chatbot.whitegrass-ce3c3d28.centralindia.azurecontainerapps.io/api/chat",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-Requested-With": "XMLHttpRequest", // Required by some CORS proxies
           },
-          body: JSON.stringify({ question: text, show_chunks: false }),
+          body: JSON.stringify({ 
+            question: questionText, 
+            show_chunks: false,
+            context: selectedLecture ? `Current lecture: ${selectedLecture.title}` : ""
+          }),
         }
       );
 
@@ -115,23 +113,35 @@ const AutoResizeTextbox = () => {
       }
 
       const data = await res.json();
-      console.log(data.answer);
-
-      // Ensure we have a valid response that's not empty
       const answer = data.answer || "No response received";
       setResponse(answer);
 
-      // If for some reason the response is empty or undefined, show an error
+      // Add response to conversation history
+      const newResponse = {
+        type: 'response',
+        content: answer,
+        timestamp: new Date().toISOString()
+      };
+
+      setConversationHistory(prev => [...prev, newQuestion, newResponse]);
+
       if (!answer || answer.trim() === "") {
         setDisplayedResponse("No response received from the server.");
       }
     } catch (error) {
       console.error("Search failed:", error);
-      setResponse(
-        "An error occurred while processing your request. Please try again."
-      );
+      const errorMessage = "An error occurred while processing your request. Please try again.";
+      setResponse(errorMessage);
+      
+      const errorResponse = {
+        type: 'error',
+        content: errorMessage,
+        timestamp: new Date().toISOString()
+      };
+      setConversationHistory(prev => [...prev, newQuestion, errorResponse]);
     } finally {
       setLoading(false);
+      setText("");
     }
   };
 
@@ -148,141 +158,164 @@ const AutoResizeTextbox = () => {
     setResponseIndex(response.length);
   };
 
+  // Expose handleQuickQuestion to parent
+  useEffect(() => {
+    if (window.aiTutorTextbox) {
+      window.aiTutorTextbox.handleQuickQuestion = handleQuickQuestion;
+    } else {
+      window.aiTutorTextbox = { handleQuickQuestion };
+    }
+  }, []);
+
   return (
-    <div className="w-full flex flex-col justify-between bg-gray-50 dark:bg-gray-900 min-h-fit">
-      <div className="w-full max-w-7xl mx-auto p-4 flex flex-col h-full">
-        {/* Response Area - Always rendered but with conditional content */}
+    <div className="flex flex-col h-full">
+      {/* Conversation History */}
+      {conversationHistory.length > 0 && (
         <div
           ref={responseRef}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-xl mb-4 p-6 flex-grow overflow-y-auto max-h-[60vh] border border-gray-200 dark:border-gray-600"
-          style={{ display: loading || displayedResponse ? "block" : "none" }}
+          className="flex-1 overflow-y-auto mb-4 space-y-3 max-h-64"
         >
+          {conversationHistory.map((message, index) => (
+            <div
+              key={index}
+              className={`${
+                message.type === 'question'
+                  ? 'bg-blue-50 dark:bg-blue-900/10 border-l-4 border-l-blue-500'
+                  : message.type === 'error'
+                  ? 'bg-red-50 dark:bg-red-900/10 border-l-4 border-l-red-500'
+                  : 'bg-gray-50 dark:bg-gray-700/50 border-l-4 border-l-gray-400'
+              } p-3 rounded-r-lg text-sm`}
+            >
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                {message.type === 'question' ? (
+                  <p className="font-medium text-blue-700 dark:text-blue-300 mb-0">
+                    {message.content}
+                  </p>
+                ) : (
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Loading and Current Response */}
+      {(loading || displayedResponse) && (
+        <div className="mb-4">
           {loading && (
-            <div className="flex justify-center items-center h-16">
-              <Loader size={24} className="text-emerald-600 dark:text-emerald-400 animate-spin" />
+            <div className="flex justify-center items-center p-4">
+              <Loader size={20} className="text-blue-600 dark:text-blue-400 animate-spin" />
             </div>
           )}
           {displayedResponse && (
-            <div className="prose prose-gray dark:prose-invert max-w-none">
-              <div className="text-gray-900 dark:text-gray-100">
+            <div className="bg-gray-50 dark:bg-gray-700/50 border-l-4 border-l-gray-400 p-3 rounded-r-lg">
+              <div className="prose prose-sm dark:prose-invert max-w-none">
                 <ReactMarkdown>{displayedResponse}</ReactMarkdown>
               </div>
             </div>
           )}
         </div>
+      )}
 
-        {/* Input Area */}
-        <div
-          className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-xl border border-gray-200 dark:border-gray-600"
-          ref={containerRef}
-        >
-          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 dark:border-gray-600">
-            <div className="relative">
-              <button
-                onClick={toggleDropdown}
-                className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                <Sparkles size={16} className="text-emerald-600 dark:text-emerald-400" />
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{selectedModel}</span>
-                {isDropdownOpen ? (
-                  <ChevronUp size={16} className="text-gray-400 dark:text-gray-500" />
-                ) : (
-                  <ChevronDown size={16} className="text-gray-400 dark:text-gray-500" />
-                )}
-              </button>
-
-              {isDropdownOpen && (
-                <div className="absolute mt-2 w-32 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg dark:shadow-xl z-10">
-                  <button
-                    onClick={() => handleModelSelect("v1")}
-                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ${
-                      selectedModel === "v1" 
-                        ? "bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white" 
-                        : "text-gray-700 dark:text-gray-300"
-                    }`}
-                  >
-                    v1
-                  </button>
-                  <button
-                    onClick={() => handleModelSelect("v2")}
-                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ${
-                      selectedModel === "v2" 
-                        ? "bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white" 
-                        : "text-gray-700 dark:text-gray-300"
-                    }`}
-                  >
-                    v2
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Main Input Area */}
-          <div className="relative flex items-end px-4 pb-4">
-            <textarea
-              ref={textareaRef}
-              value={text}
-              onChange={handleInput}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask anything..."
-              className="w-full min-h-[40px] max-h-[400px] pr-12 pl-3 py-3
-                        resize-none overflow-y-auto focus:outline-none
-                        flex flex-col-reverse text-gray-800 dark:text-gray-100
-                        bg-transparent placeholder-gray-500 dark:placeholder-gray-400"
-              style={{
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-              }}
-              rows={1}
-            />
+      {/* Input Area */}
+      <div className="bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+        {/* Model Selector */}
+        <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 dark:border-gray-600">
+          <div className="relative">
             <button
-              onClick={handleSearch}
-              disabled={loading}
-              className={`absolute right-6 bottom-6 p-2 rounded-lg
-                        focus:outline-none focus:ring-2 focus:ring-offset-2
-                        transition-colors duration-200 ${
-                          loading
-                            ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
-                            : "bg-emerald-600 dark:bg-emerald-500 text-white hover:bg-emerald-700 dark:hover:bg-emerald-400 focus:ring-emerald-500 dark:focus:ring-emerald-400"
-                        }`}
+              onClick={toggleDropdown}
+              className="flex items-center space-x-2 px-2 py-1 rounded hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
             >
-              {loading ? (
-                <Loader size={18} className="animate-spin" />
+              <Sparkles size={14} className="text-blue-600 dark:text-blue-400" />
+              <span className="text-xs font-medium text-gray-900 dark:text-white">{selectedModel}</span>
+              {isDropdownOpen ? (
+                <ChevronUp size={14} className="text-gray-400 dark:text-gray-500" />
               ) : (
-                <Search size={18} />
+                <ChevronDown size={14} className="text-gray-400 dark:text-gray-500" />
               )}
             </button>
-          </div>
 
-          {/* Bottom Bar with Options */}
-          <div className="flex items-center justify-between px-4 py-2 border-t border-gray-100 dark:border-gray-600">
-            <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-              <span>Focus: Accurate</span>
-              <span>•</span>
-              <span>Length: Balanced</span>
-            </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              {text.length > 0
-                ? `Characters: ${text.length}`
-                : "Powered by Dhamm AI"}
-            </div>
+            {isDropdownOpen && (
+              <div className="absolute mt-1 w-20 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-10">
+                <button
+                  onClick={() => handleModelSelect("v1")}
+                  className={`block w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ${
+                    selectedModel === "v1" 
+                      ? "bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white" 
+                      : "text-gray-700 dark:text-gray-300"
+                  }`}
+                >
+                  v1
+                </button>
+                <button
+                  onClick={() => handleModelSelect("v2")}
+                  className={`block w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ${
+                    selectedModel === "v2" 
+                      ? "bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white" 
+                      : "text-gray-700 dark:text-gray-300"
+                  }`}
+                >
+                  v2
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Stop Generation Button - Only visible when generating text */}
-        {isGenerating && (
-          <div className="flex justify-center mt-4">
-            <button
-              onClick={stopGeneration}
-              className="flex items-center space-x-2 px-4 py-2 bg-red-600 dark:bg-red-500 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-400 transition-colors duration-200 shadow-md dark:shadow-lg"
-            >
-              <Square size={16} fill="white" />
-              <span>Stop Generating</span>
-            </button>
+        {/* Text Input */}
+        <div className="relative flex items-end p-3">
+          <textarea
+            ref={textareaRef}
+            value={text}
+            onChange={handleInput}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask about this lecture..."
+            className="w-full min-h-[32px] max-h-[120px] pr-10 resize-none overflow-y-auto focus:outline-none
+                      text-gray-800 dark:text-gray-100 bg-transparent placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+            rows={1}
+          />
+          <button
+            onClick={() => handleSearch()}
+            disabled={loading}
+            className={`absolute right-4 bottom-4 p-1.5 rounded-lg transition-colors duration-200 ${
+              loading
+                ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
+                : "bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-400"
+            }`}
+          >
+            {loading ? (
+              <Loader size={14} className="animate-spin" />
+            ) : (
+              <Send size={14} />
+            )}
+          </button>
+        </div>
+
+        {/* Bottom Info */}
+        <div className="px-3 py-2 border-t border-gray-100 dark:border-gray-600">
+          <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+            Press Enter to send • Shift+Enter for new line
           </div>
-        )}
+        </div>
       </div>
+
+      {/* Stop Generation Button */}
+      {isGenerating && (
+        <div className="flex justify-center mt-2">
+          <button
+            onClick={stopGeneration}
+            className="flex items-center space-x-1 px-3 py-1 bg-red-600 dark:bg-red-500 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-400 transition-colors duration-200 text-xs"
+          >
+            <Square size={12} fill="white" />
+            <span>Stop</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
