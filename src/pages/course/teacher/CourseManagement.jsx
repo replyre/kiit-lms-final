@@ -50,6 +50,7 @@ import ProfileDropdown from "../../../utils/ProfileDropDown";
 import AllActivities from "../../Activity/teacher/AllActivities";
 import BlogCreator from "./course/Blog/BlogCreator";
 import { useMeeting } from "../../../context/MeetingContext";
+
 const CourseManagement = () => {
   const [selectedOption, setSelectedOption] = useState("Home");
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -152,11 +153,6 @@ const CourseManagement = () => {
     setOpenDropdown(openDropdown === menu ? null : menu);
   };
 
-  // Navigate to E-Content page
-  // const handleEContentClick = () => {
-  //   navigate(`/teacher/econtent/${courseID}`);
-  // };
-
   // Navigate options with icons
   const navigationOptions = {
     course: {
@@ -220,12 +216,8 @@ const CourseManagement = () => {
 
   const renderContent = () => {
     return (
-      <div className="bg-white rounded-xl shadow-sm relative ">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm relative">
         <div className="">
-          {/* <div className="flex justify-between items-center absolute -top-10 right-36">
-            <SaveButton urlId={courseID} />
-          </div> */}
-
           <div className="min-h-96">
             {selectedOption === "Course Brief" && <CourseBrief />}
             {selectedOption === "Weekly Plan" && <WeeklyPlanManager />}
@@ -248,17 +240,12 @@ const CourseManagement = () => {
             {selectedOption === "Status Sheet" && <AttendanceStats />}
             {selectedOption === "Content" && (
               <ContentSection setSelectedOption={setSelectedOption} />
-              // <BlogCreator />
-              
             )}
-
-            {/* Add this section for Self Test */}
             {selectedOption === "Self Test" && <SelfQuiz />}
             {selectedOption === "Create Quiz" && <QuizCreator />}
             {selectedOption === "Announcements" && (
               <AnnouncementManagement courseID={courseID} />
             )}
-
             {selectedOption === "Grade Sheet" && <StudentGradingTable />}
             {selectedOption === "Discussion" && <DiscussionForum />}
           </div>
@@ -267,18 +254,42 @@ const CourseManagement = () => {
     );
   };
 
+  // Updated renderDropdown function with underline effect
   const renderDropdown = (menuKey) => {
     if (!navigationOptions[menuKey]) return null;
     const { title, icon, items } = navigationOptions[menuKey];
+
+    // Check if this tab or any of its sub-items are selected
+    const isTabSelected = selectedOption === title || (items && items.some(item => selectedOption === item.label));
+
+    if (!items || items.length === 0) {
+      return (
+        <button
+          onClick={() => setSelectedOption(title)}
+          className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+            selectedOption === title
+              ? "text-accent1 dark:text-accent1"
+              : "text-gray-700 dark:text-gray-300"
+          }`}
+        >
+          {icon}
+          <span>{title}</span>
+          {/* Add line below when selected */}
+          {selectedOption === title && (
+            <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-full h-1 bg-accent1 dark:bg-accent1 rounded-full"></div>
+          )}
+        </button>
+      );
+    }
 
     return (
       <div className="relative dropdown-container">
         <button
           onClick={() => toggleDropdown(menuKey)}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors ${
-            openDropdown === menuKey
-              ? "bg-gray-100 text-primary"
-              : "text-gray-700"
+          className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+            openDropdown === menuKey || isTabSelected
+              ? "bg-gray-100 dark:bg-gray-700 text-accent1 dark:text-accent1"
+              : "text-gray-700 dark:text-gray-300"
           }`}
         >
           {icon}
@@ -288,10 +299,14 @@ const CourseManagement = () => {
               openDropdown === menuKey ? "rotate-180" : ""
             }`}
           />
+          {/* Add line below when this tab or any sub-item is selected */}
+          {isTabSelected && (
+            <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-full h-1 bg-accent1 dark:bg-accent1 rounded-full"></div>
+          )}
         </button>
 
         {openDropdown === menuKey && (
-          <div className="absolute left-0 mt-2 w-[440px] bg-white rounded-xl shadow-lg border border-gray-200 py-4 z-50">
+          <div className="absolute left-0 mt-2 w-[440px] bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-xl border border-gray-200 dark:border-gray-600 py-4 z-50">
             <div className="grid grid-cols-2 gap-4 px-4">
               {items.map((item) => (
                 <button
@@ -302,15 +317,15 @@ const CourseManagement = () => {
                   }}
                   className={`flex items-center space-x-3 p-4 rounded-lg transition-colors ${
                     selectedOption === item.label
-                      ? "bg-primary/10 text-primary"
-                      : "hover:bg-gray-50 text-gray-700"
+                      ? "bg-accent1/10 dark:bg-accent1/20 text-accent1 dark:text-accent1"
+                      : "hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                   }`}
                 >
                   <div
                     className={`p-2 rounded-lg ${
                       selectedOption === item.label
-                        ? "bg-primary/20"
-                        : "bg-gray-100"
+                        ? "bg-accent1/20 dark:bg-accent1/30"
+                        : "bg-gray-100 dark:bg-gray-700"
                     }`}
                   >
                     {item.icon}
@@ -326,36 +341,22 @@ const CourseManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 ">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Top Header with Logo, Profile and Logout */}
-      <header className="bg-transparent border-b border-gray-200 ">
-        <div className=" mx-auto px-4 sm:px-6 lg:px-8">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-end items-center h-16">
-            {/* Logo on Left */}
-            {/* <div
-              className="flex items-center"
-              onClick={() => setSelectedOption("Home")}
-            >
-              <div className="flex-shrink-0">
-                <img
-                  className="h-12 w-auto"
-                  src="/DhammName.png"
-                  alt="Dhamm Nexus"
-                />
-              </div>
-            </div> */}
-
             {/* Profile and Logout on Right */}
-            <div className="flex items-center space-x-4 realtive z-[1000]">
+            <div className="flex items-center space-x-4 relative z-[1000]">
               <abbr title="Discussions">
-                <button className="p-2  rounded-full hover:bg-primary/20 transition-colors  text-accent1 hover hover:text-primary">
+                <button className="p-2 rounded-full hover:bg-primary/20 dark:hover:bg-blue-500/20 transition-colors text-primary/70 dark:text-blue-400/70 hover:text-primary dark:hover:text-blue-400">
                   <VscCommentDiscussion
                     onClick={() => setSelectedOption("Discussion")}
                   />
                 </button>
               </abbr>
               <abbr title="Announcements">
-                <button className="p-2  rounded-full  hover:bg-primary/20 transition-colors  text-accent1 hover:text-primary">
+                <button className="p-2 rounded-full hover:bg-primary/20 dark:hover:bg-blue-500/20 transition-colors text-primary/70 dark:text-blue-400/70 hover:text-primary dark:hover:text-blue-400">
                   <TfiAnnouncement
                     onClick={() => setSelectedOption("Announcements")}
                   />
@@ -364,7 +365,7 @@ const CourseManagement = () => {
               <ProfileDropdown role={"teacher"} />
               <abbr title="Logout">
                 <button
-                  className="p-2 rounded-full hover:bg-red/40 transition-colors  text-red-600"
+                  className="p-2 rounded-full hover:bg-red/40 dark:hover:bg-red-500/20 transition-colors text-red-600 dark:text-red-400"
                   onClick={() => handleLogout()}
                 >
                   <FaSignOutAlt size={22} />
@@ -374,103 +375,126 @@ const CourseManagement = () => {
           </div>
         </div>
       </header>
-{liveMeeting && <button
-    onClick={handleJoinLiveClass}
-    className="flex justify-center items-center gap-2 bottom-[40%] absolute  right-8 text-lg px-6 py-2 bg-primary/80 text-white rounded-lg hover:bg-primary transition-colors">
-    <MdLiveTv />
-    Join Live Class
-</button>}
-{!liveMeeting && <button
-    onClick={handleJoinLiveClass}
-    className="flex justify-center items-center gap-2 bottom-[40%] absolute  right-8 text-lg px-6 py-2 cursor-not-allowed bg-primary/20 text-gray-400 rounded-lg hover:bg-primary transition-colors">
-    <MdLiveTv />
-    No Live Class
-</button>}
+
+      {/* Live Class Buttons */}
+      {liveMeeting && (
+        <button
+          onClick={handleJoinLiveClass}
+          className="flex justify-center items-center gap-2 bottom-[40%] fixed right-8 text-lg px-6 py-2 bg-primary/80 text-white rounded-lg hover:bg-primary transition-colors z-50"
+        >
+          <MdLiveTv />
+          Join Live Class
+        </button>
+      )}
+    
+
       {/* Course Header Banner */}
-       <div className="flex justify-center w-full gap-10 overflow-hidden m-4">
-        <img
-          src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=2340&q=80"
-          alt="red"
-          className="w-[40%] h-[30%] object-cover rounded-xl"
-        />
-        <div className=" inset-0 w-[40%] flex items-center">
-          <div className="container mx-auto px-6">
-            <h1 className="text-4xl font-bold text-gray-600 mb-10">
+      <div className="w-[90%] m-auto pt-4">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex-1">
+            <h1 className="text-4xl font-bold text-primary dark:text-blue-400">
               {courseData.title}
             </h1>
-            <h4 className="text-lg font-bold text-gray-500 ">
-             {String(courseData.aboutCourse).substring(0,200)+ "..."}
-            </h4>
+            <p className="text-xl text-primary/60 dark:text-blue-400/70 mt-2">
+              {courseData.teacher?.name}
+            </p>
+          </div>
+          
+          {/* Live Class Button */}
+          <div className="ml-8">
+            <button
+              disabled
+              className="flex justify-center items-center gap-2 text-lg px-6 py-2 bg-gray-400 dark:bg-gray-600 text-white dark:text-gray-300 rounded-lg cursor-not-allowed"
+            >
+              <MdLiveTv />
+              No Live Class Now
+            </button>
           </div>
         </div>
       </div>
 
       {/* Navigation Bar */}
-      <nav className="bg-transparent w-full shadow-sm absolute top-0 z-40">
-        <div className="max-w-[80%] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex  items-center justify-between h-16">
-            {/* Left side - Take Class Button */}
-            <button
-              onClick={() => navigate(-1)}
-              className="absolute left-6 top-3 z-10 border border-black flex items-center space-x-2 px-4 py-2 bg-white/20 rounded-lg text-white hover:bg-gray-200 hover:text-black hover:shadow-md transition-all"
-            >
-              <ArrowLeft className="h-5 w-5 text-black" />
-              <span className="text-black">Back</span>
-            </button>
-
-            {/* Navigation Items */}
-            <div className="flex mx-auto items-center space-x-6 ">
-                <button
+      <nav className="absolute shadow-sm top-0  bg-red-400 dark:bg-red-500 w-full z-40">
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute left-6 top-3 z-10 border border-black dark:border-gray-600 flex items-center space-x-2 px-4 py-2 bg-white/20 dark:bg-gray-800/20 rounded-lg text-white hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-black dark:hover:text-white hover:shadow-md transition-all"
+        >
+          <ArrowLeft className="h-5 w-5 text-black dark:text-white" />
+          <span className="text-black dark:text-white">Back</span>
+        </button>
+        
+        <div className="absolute top-40 left-6 mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex mx-auto items-center space-x-6">
+              {/* Home Button with underline effect */}
+              <button
                 onClick={() => setSelectedOption("Home")}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors ${
-                  selectedOption === "Class List"
-                    ? "bg-gray-100 text-primary"
-                    : "text-gray-700"
+                className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                  selectedOption === "Home"
+                    ? "text-accent1 dark:text-accent1"
+                    : "text-gray-700 dark:text-gray-300"
                 }`}
               >
                 <Home className="w-5 h-5" />
                 <span>Home</span>
+                {/* Add line below when selected */}
+                {selectedOption === "Home" && (
+                  <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-full h-1 bg-accent1 dark:bg-accent1 rounded-full"></div>
+                )}
               </button>
+
               {/* Dropdown Menus */}
               {Object.keys(navigationOptions).map((key) => renderDropdown(key))}
 
-              {/* Single Menu Items */}
-            
-
+              {/* Recordings Button with underline effect */}
               <button
                 onClick={() => setSelectedOption("Recorded Lectures")}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors ${
+                className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
                   selectedOption === "Recorded Lectures"
-                    ? "bg-gray-100 text-primary"
-                    : "text-gray-700"
+                    ? "text-accent1 dark:text-accent1"
+                    : "text-gray-700 dark:text-gray-300"
                 }`}
               >
                 <Video className="w-5 h-5" />
                 <span>Recordings</span>
+                {/* Add line below when selected */}
+                {selectedOption === "Recorded Lectures" && (
+                  <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-full h-1 bg-accent1 dark:bg-accent1 rounded-full"></div>
+                )}
               </button>
 
+              {/* Content Button with underline effect */}
               <button
                 onClick={() => setSelectedOption("Content")}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors ${
+                className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
                   selectedOption === "Content"
-                    ? "bg-gray-100 text-primary"
-                    : "text-gray-700"
+                    ? "text-accent1 dark:text-accent1"
+                    : "text-gray-700 dark:text-gray-300"
                 }`}
               >
                 <FileText className="w-5 h-5" />
                 <span>Content</span>
+                {/* Add line below when selected */}
+                {selectedOption === "Content" && (
+                  <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-full h-1 bg-accent1 dark:bg-accent1 rounded-full"></div>
+                )}
               </button>
 
+              {/* Grades Button with underline effect */}
               <button
                 onClick={() => setSelectedOption("Grade Sheet")}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors ${
+                className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
                   selectedOption === "Grade Sheet"
-                    ? "bg-gray-100 text-primary"
-                    : "text-gray-700"
+                    ? "text-accent1 dark:text-accent1"
+                    : "text-gray-700 dark:text-gray-300"
                 }`}
               >
                 <BarChart2 className="w-5 h-5" />
                 <span>Grades</span>
+                {/* Add line below when selected */}
+                {selectedOption === "Grade Sheet" && (
+                  <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-full h-1 bg-accent1 dark:bg-accent1 rounded-full"></div>
+                )}
               </button>
             </div>
           </div>
@@ -478,7 +502,7 @@ const CourseManagement = () => {
       </nav>
 
       {/* Main Content */}
-      <main className=" mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+      <main className="mx-auto px-4 sm:px-6 lg:px-8 py-8 relative mt-20">
         {renderContent()}
       </main>
     </div>
