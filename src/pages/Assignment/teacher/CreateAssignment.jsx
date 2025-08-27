@@ -1,313 +1,863 @@
 import React, { useState } from "react";
-import { createAssignment } from "../../../services/assignment.service";
+import {
+  ArrowLeft,
+  Plus,
+  Upload,
+  Sparkles,
+  FileText,
+  Edit,
+  Trash,
+  Eye,
+  Calendar,
+  Clock,
+  BookOpen,
+  Target,
+  CheckCircle2,
+  AlertCircle,
+  X
+} from "lucide-react";
 
-const AssignmentForm = ({ courseID, fetchAssignments = () => console.log("Fetching assignments...") }) => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [attachments, setAttachments] = useState([]);
-  const [totalPoints, setTotalPoints] = useState(100);
-  const [dueDate, setDueDate] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
-
-  // AI Question Generator states
-  const [selectedOutcome, setSelectedOutcome] = useState("");
-  const [selectedBloomLevel, setSelectedBloomLevel] = useState("");
-  const [questionType, setQuestionType] = useState("Long answer"); // Added state for question type
-  const [extraPrompt, setExtraPrompt] = useState(""); // Added state for extra prompt
-  const [generatingQuestion, setGeneratingQuestion] = useState(false);
-  const [generatedQuestions, setGeneratedQuestions] = useState([]);
-  const [aiError, setAiError] = useState(null);
-
-  // Course outcomes options
-  const courseOutcomes = [
-    "Identify different types of concrete and its properties.",
-    "Determine the workability of concrete.",
-    "Determine strength and durability of concrete.",
-    "Design concrete mixes for the given conditions.",
-    "Perform tests of hardened concrete.",
-    "Select types of admixture and special concrete for given condition.",
-  ];
-
-  // Bloom's taxonomy levels
-  const bloomLevels = [
-    "Remember",
-    "Understand",
-    "Apply",
-    "Analyze",
-    "Evaluate",
-    "Create",
-  ];
-  
-  // Question types for the AI generator
-  const questionTypes = ["Objective", "Short answer", "Long answer", "Case based"];
-
-  // Handle file upload
-  const handleFileUpload = (event) => {
-    if (event.target.files && event.target.files.length > 0) {
-      const newFiles = Array.from(event.target.files);
-      setAttachments((prevAttachments) => [...prevAttachments, ...newFiles]);
-    }
-  };
-
-  // Remove selected file
-  const handleRemoveFile = (index) => {
-    setAttachments((prevAttachments) =>
-      prevAttachments.filter((_, fileIndex) => fileIndex !== index)
-    );
-  };
-
-  // Generate question using the live API
-  const generateQuestion = async () => {
-    if (!selectedOutcome || !selectedBloomLevel || !questionType) {
-      setAiError(
-        "Please select a course outcome, a Bloom's taxonomy level, and a question type."
-      );
-      return;
-    }
-
-    setGeneratingQuestion(true);
-    setAiError(null);
-
-    const apiEndpoint = "https://question-generation.whitegrass-ce3c3d28.centralindia.azurecontainerapps.io/api/generate-questions";
-
-    // Use URLSearchParams to construct the x-www-form-urlencoded body
-    const requestBody = new URLSearchParams();
-    requestBody.append("selected_cos[]", selectedOutcome);
-    requestBody.append("selected_bloom[]", selectedBloomLevel);
-    requestBody.append("selected_types[]", questionType);
-    requestBody.append("extra_prompt[]", extraPrompt || "Generate based on concrete concepts");
-
-    try {
-      const response = await fetch(apiEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: requestBody.toString(),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API Error (${response.status}): ${errorText}`);
+// Dummy course data (you can replace this with useCourse hook)
+const courseData = {
+  id: "68a42cbdefa0d4e7c4f41706",
+  title: "Fundamentals of Probability and Statistics",
+  courseCode: "CS101",
+  syllabus: {
+    modules: [
+      {
+        _id: "68a42cbdefa0d4e7c4f41714",
+        name: "Descriptive Statistics and Data Analysis",
+        moduleNumber: 1
+      },
+      {
+        _id: "68a42cbdefa0d4e7c4f41716", 
+        name: "Probability Theory",
+        moduleNumber: 2
       }
+    ]
+  }
+};
 
-      const data = await response.json();
+// Dummy questions for AI generation
+const dummyAIQuestions = [
+  {
+    id: 1,
+    question: "What is the difference between population and sample in statistics?",
+    type: "subjective",
+    bloomLevel: "understand",
+    courseOutcome: "CO1",
+    options: null
+  },
+  {
+    id: 2,
+    question: "Calculate the mean of the following dataset: 5, 10, 15, 20, 25",
+    type: "subjective",
+    bloomLevel: "apply",
+    courseOutcome: "CO1",
+    options: null
+  },
+  {
+    id: 3,
+    question: "Which of the following is a measure of central tendency?",
+    type: "objective",
+    bloomLevel: "remember",
+    courseOutcome: "CO1",
+    options: ["Mean", "Range", "Variance", "Standard Deviation"],
+    correctAnswer: "Mean"
+  },
+  {
+    id: 4,
+    question: "The probability of an impossible event is:",
+    type: "objective", 
+    bloomLevel: "remember",
+    courseOutcome: "CO2",
+    options: ["0", "1", "0.5", "Infinity"],
+    correctAnswer: "0"
+  },
+  {
+    id: 5,
+    question: "Explain Bayes' theorem and provide a real-world example of its application.",
+    type: "subjective",
+    bloomLevel: "analyze",
+    courseOutcome: "CO2",
+    options: null
+  }
+];
 
-      // Handle the new API response structure where `data.questions` is an array of objects.
-      if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
-        const newQuestions = data.questions.map(q_item => {
-            // The actual question text is in the 'output' property.
-            // Replace newline characters with <br> for HTML rendering.
-            const formattedQuestion = q_item.output.replace(/\n/g, '<br />');
-            return {
-                question: formattedQuestion,
-                rawQuestion: q_item.output, // Keep raw text for description
-                outcome: q_item.co,
-                bloomLevel: q_item.bloom_level,
-                type: questionType, // Use the type that was requested
-            };
-        });
+const courseOutcomes = [
+  "CO1: Master fundamental concepts of probability theory and statistical inference",
+  "CO2: Apply various probability distributions to real-world problems", 
+  "CO3: Perform hypothesis testing and statistical analysis on datasets",
+  "CO4: Understand correlation, regression, and predictive modeling",
+  "CO5: Interpret statistical results and draw meaningful conclusions from data"
+];
 
-        setGeneratedQuestions(prev => [...newQuestions, ...prev]);
+const bloomLevels = ["Remember", "Understand", "Apply", "Analyze", "Evaluate", "Create"];
+const questionTypes = ["Objective", "Subjective"];
 
-      } else {
-        throw new Error("No questions were generated in the expected format.");
-      }
-    } catch (err) {
-      console.error("Error generating question:", err);
-      setAiError(err.message || "Failed to generate question. Check the console for details.");
-    } finally {
-      setGeneratingQuestion(false);
-    }
-  };
+// STEP 1: Moved StepIndicator outside the main component
+const StepIndicator = ({ steps, currentStep }) => (
+  <div className="flex items-center justify-between mb-8">
+    {steps.map((step, index) => (
+      <div key={step.number} className="flex items-center">
+        <div className="flex flex-col items-center">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${
+            step.number === currentStep ? 'bg-blue-500' : 
+            step.number < currentStep ? 'bg-green-500' : 'bg-gray-300'
+          }`}>
+            {step.number < currentStep ? <CheckCircle2 size={20} /> : step.number}
+          </div>
+          <div className="text-center mt-2">
+            <div className={`font-medium ${step.number === currentStep ? 'text-blue-600' : 'text-gray-600'}`}>
+              {step.title}
+            </div>
+            <div className="text-sm text-gray-500">{step.subtitle}</div>
+          </div>
+        </div>
+        {index < steps.length - 1 && (
+          <div className={`w-24 h-0.5 mx-4 ${step.number < currentStep ? 'bg-green-500' : 'bg-gray-300'}`} />
+        )}
+      </div>
+    ))}
+  </div>
+);
 
-  // Add selected question to description using the raw text to avoid HTML tags
-  const addQuestionToDescription = (rawQuestion) => {
-    const formattedQuestion = `Q) ${rawQuestion}`;
-    setDescription((prev) => (prev ? `${prev}\n\n${formattedQuestion}` : formattedQuestion));
-  };
+// STEP 2: Moved AssignmentDetailsStep outside and passed props
+const AssignmentDetailsStep = ({
+  assignmentTitle, setAssignmentTitle,
+  description, setDescription,
+  instructions, setInstructions,
+  selectedModule, setSelectedModule,
+  totalPoints, setTotalPoints,
+  dueDate, setDueDate,
+  dueTime, setDueTime
+}) => (
+  <div className="max-w-6xl mx-auto">
+    <div className="flex items-center gap-2 mb-6">
+      <BookOpen className="text-blue-500" size={24} />
+      <h2 className="text-2xl font-bold">Assignment Details</h2>
+      <p className="text-gray-600 ml-2">Configure the basic information for your assignment</p>
+    </div>
 
-  // Remove question from the list
-  const removeQuestion = (indexToRemove) => {
-    setGeneratedQuestions((prev) =>
-      prev.filter((_, index) => index !== indexToRemove)
-    );
-  };
-
-  // Handle form submission
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuccess(false);
-
-    try {
-      const formData = new FormData();
-      formData.append("title", title);
-      formData.append("description", description);
-      formData.append("totalPoints", totalPoints.toString());
-      formData.append("dueDate", dueDate);
-      attachments.forEach((file) => {
-        formData.append("attachments", file);
-      });
-
-      await createAssignment(courseID, formData);
-
-      setSuccess(true);
-      setTitle("");
-      setDescription("");
-      setAttachments([]);
-      setTotalPoints(100);
-      setDueDate("");
-      setGeneratedQuestions([]);
-      setTimeout(() => {
-        if(fetchAssignments) fetchAssignments();
-      }, 1000);
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to create assignment.");
-      console.error("Error creating assignment:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col lg:flex-row w-full p-4 md:p-6 gap-4 max-h-[90vh] overflow-y-auto"
-    >
-      {/* Left Section - Assignment Form */}
-      <div className="w-full lg:w-2/3 p-4 bg-white shadow-md rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">Create Assignment</h2>
-        <input
-          type="text"
-          className="w-full border p-2 rounded mb-4"
-          placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-        <textarea
-          className="w-full border p-2 rounded mb-4"
-          placeholder="Description"
-          rows="8"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        ></textarea>
-
-        {/* AI Question Generator */}
-        <div className="mb-6 p-4 border rounded-lg border-blue-200 bg-blue-50">
-          <h3 className="text-lg font-semibold mb-3 text-blue-800">
-            AI Question Generator
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-            <select className="w-full border p-2 rounded" value={selectedOutcome} onChange={(e) => setSelectedOutcome(e.target.value)}>
-              <option value="">Select a Course Outcome</option>
-              {courseOutcomes.map((o, i) => <option key={i} value={o}>{o}</option>)}
-            </select>
-            <select className="w-full border p-2 rounded" value={selectedBloomLevel} onChange={(e) => setSelectedBloomLevel(e.target.value)}>
-              <option value="">Select a Bloom's Level</option>
-              {bloomLevels.map((l, i) => <option key={i} value={l}>{l}</option>)}
-            </select>
-             <select className="w-full border p-2 rounded" value={questionType} onChange={(e) => setQuestionType(e.target.value)}>
-               <option value="">Select Question Type</option>
-               {questionTypes.map((t, i) => <option key={i} value={t}>{t}</option>)}
-            </select>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Left Section - Basic Information */}
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Assignment Title</label>
+            <input
+              type="text"
+              value={assignmentTitle}
+              onChange={(e) => setAssignmentTitle(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter assignment title"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
             <textarea
-                className="w-full border p-2 rounded md:col-span-2"
-                placeholder="Extra Prompt (Optional)"
-                rows="2"
-                value={extraPrompt}
-                onChange={(e) => setExtraPrompt(e.target.value)}
-            ></textarea>
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              rows="4"
+              placeholder="Brief description of the assignment"
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Course</label>
+              <input
+                type="text"
+                value={`${courseData.courseCode} - ${courseData.title}`}
+                disabled
+                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Module</label>
+              <select
+                value={selectedModule}
+                onChange={(e) => setSelectedModule(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select module</option>
+                {courseData.syllabus.modules.map(module => (
+                  <option key={module._id} value={module._id}>
+                    Module {module.moduleNumber}: {module.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Right Section - Instructions and Scheduling */}
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <h3 className="text-lg font-semibold mb-4">Instructions</h3>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Assignment Instructions</label>
+            <textarea
+              value={instructions}
+              onChange={(e) => setInstructions(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              rows="6"
+              placeholder="Use clear, concise language. Include any special requirements or resources students will need."
+            />
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="text-blue-500" size={20} />
+            <h3 className="text-lg font-semibold">Scheduling</h3>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Total Points</label>
+              <select
+                value={totalPoints}
+                onChange={(e) => setTotalPoints(Number(e.target.value))}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value={100}>100</option>
+                <option value={50}>50</option>
+                <option value={25}>25</option>
+                <option value={10}>10</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Due Time</label>
+                <input
+                  type="time"
+                  value={dueTime}
+                  onChange={(e) => setDueTime(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// STEP 3: Moved QuestionsStep outside and passed props
+const QuestionsStep = ({
+  questions, activeTab, setActiveTab,
+  uploadedFile, handleFileUpload,
+  numQuestions, setNumQuestions,
+  selectedBloomLevel, setSelectedBloomLevel,
+  selectedModule2, setSelectedModule2,
+  additionalContext, setAdditionalContext,
+  generating, generateAIQuestions,
+  editQuestion, removeQuestion
+}) => (
+  <div className="max-w-6xl mx-auto">
+    <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center gap-2">
+        <Sparkles className="text-blue-500" size={24} />
+        <div>
+          <h2 className="text-2xl font-bold">Questions</h2>
+          <p className="text-gray-600">Upload or generate questions for your assignment</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        <span className="text-sm text-gray-600">{questions.length} questions</span>
+        {questions.length > 0 && (
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="text-green-500" size={16} />
+            <span className="text-sm text-green-600">Ready</span>
+          </div>
+        )}
+      </div>
+    </div>
+    {/* Tab Navigation */}
+    <div className="flex mb-6 bg-gray-100 p-1 rounded-lg w-fit">
+      {[
+        { key: "upload", icon: Upload, label: "Upload Questions" },
+        { key: "generate", icon: Sparkles, label: "AI Generate" },
+        { key: "list", icon: FileText, label: `Question List (${questions.length})` }
+      ].map(tab => (
+        <button
+          key={tab.key}
+          onClick={() => setActiveTab(tab.key)}
+          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === tab.key
+              ? 'bg-white text-blue-600 shadow-sm'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <tab.icon size={16} />
+          {tab.label}
+        </button>
+      ))}
+    </div>
+    {/* Tab Content */}
+    <div className="min-h-[500px]">
+      {activeTab === "upload" && (
+        <div className="bg-white rounded-lg shadow-sm border p-8">
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-blue-400 transition-colors">
+            <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Question File</h3>
+            <p className="text-gray-600 mb-4">
+              Drag and drop your CSV, Excel, or JSON file here, or click to browse
+            </p>
+            <input
+              type="file"
+              accept=".csv,.xlsx,.xls,.json"
+              onChange={handleFileUpload}
+              className="hidden"
+              id="file-upload"
+            />
+            <label
+              htmlFor="file-upload"
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer"
+            >
+              Choose File
+            </label>
+            {uploadedFile && (
+              <p className="mt-2 text-sm text-green-600">
+                Uploaded: {uploadedFile.name}
+              </p>
+            )}
           </div>
 
+          <div className="mt-6">
+            <h4 className="font-medium text-gray-900 mb-2">Supported Formats:</h4>
+            <div className="space-y-2 text-sm text-gray-600">
+              <div>• <strong>CSV:</strong> question, type, option_a, option_b, option_c, option_d, correct_answer</div>
+              <div>• <strong>Excel:</strong> Same structure as CSV with columns</div>
+              <div>• <strong>JSON:</strong> Array of question objects with properties: question, type, options[], correctAnswer</div>
+            </div>
+            
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+              <h5 className="font-medium text-blue-900 mb-2">Sample JSON Format:</h5>
+              <pre className="text-xs text-blue-800 bg-white p-2 rounded border overflow-x-auto">
+{`[
+{
+  "question": "What is statistics?",
+  "type": "subjective",
+  "options": null,
+  "correctAnswer": null
+},
+{
+  "question": "Which is a measure of central tendency?", 
+  "type": "objective",
+  "options": ["Mean", "Range", "Variance", "Mode"],
+  "correctAnswer": "Mean"
+}
+]`}
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
+      {activeTab === "generate" && (
+        <div className="bg-white rounded-lg shadow-sm border p-8">
+          <div className="flex items-center gap-2 mb-6">
+            <Sparkles className="text-blue-500" size={24} />
+            <h3 className="text-xl font-semibold">AI Question Generator</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Number of Questions</label>
+              <input
+                type="number"
+                value={numQuestions}
+                onChange={(e) => setNumQuestions(Number(e.target.value))}
+                min="1"
+                max="20"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Bloom Taxonomy Level</label>
+              <select
+                value={selectedBloomLevel}
+                onChange={(e) => setSelectedBloomLevel(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select level</option>
+                {bloomLevels.map(level => (
+                  <option key={level} value={level.toLowerCase()}>{level}</option>
+                ))}
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Topic/Module</label>
+              <select
+                value={selectedModule2}
+                onChange={(e) => setSelectedModule2(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select topic</option>
+                {courseData.syllabus.modules.map(module => (
+                  <option key={module._id} value={module._id}>
+                    {module.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Additional Context (Optional)</label>
+              <textarea
+                value={additionalContext}
+                onChange={(e) => setAdditionalContext(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                rows="3"
+                placeholder="Provide any additional context, specific concepts, or requirements for the questions..."
+              />
+            </div>
+          </div>
+          <div className="bg-blue-50 rounded-lg p-4 mb-6">
+            <h4 className="font-medium text-blue-900 mb-2">Generation Preview</h4>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• {numQuestions} questions will be generated</li>
+              <li>• Complexity: {selectedBloomLevel || "Not specified"}</li>
+              <li>• Topic: {selectedModule2 ? courseData.syllabus.modules.find(m => m._id === selectedModule2)?.name : "Not specified"}</li>
+            </ul>
+          </div>
           <button
-            type="button"
-            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-300 transition-colors mb-3"
-            onClick={generateQuestion}
-            disabled={generatingQuestion || !selectedOutcome || !selectedBloomLevel || !questionType}
+            onClick={generateAIQuestions}
+            disabled={generating || !numQuestions}
+            className="w-full bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg font-medium"
           >
-            {generatingQuestion ? "Generating..." : "Generate Question"}
+            {generating ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                Generating Questions...
+              </>
+            ) : (
+              <>
+                <Sparkles size={20} />
+                Generate Questions
+              </>
+            )}
           </button>
-
-          {aiError && <div className="text-red-600 text-sm mb-3 p-2 bg-red-100 rounded">{aiError}</div>}
-
-          {generatedQuestions.length > 0 && (
-            <div className="mt-4">
-              <h4 className="text-md font-semibold mb-2">Generated Questions:</h4>
-              <div className="space-y-3">
-                {generatedQuestions.map((item, index) => (
-                  <div key={index} className="p-3 border rounded bg-white shadow-sm">
-                    <div className="flex justify-between items-start">
-                      <p className="text-sm mb-2 pr-2" dangerouslySetInnerHTML={{ __html: item.question }}></p>
-                      <button type="button" onClick={() => removeQuestion(index)} className="text-red-500 hover:text-red-700 ml-2 text-lg font-bold" title="Remove question">×</button>
-                    </div>
-                    <div className="flex justify-between items-center mt-2">
-                      <button type="button" className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200" onClick={() => addQuestionToDescription(item.rawQuestion)}>Use This Question</button>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <span className="font-semibold capitalize px-2 py-0.5 bg-gray-200 rounded">{item.type}</span>
-                        <span>{item.bloomLevel}</span>
+        </div>
+      )}
+      {activeTab === "list" && (
+        <div className="bg-white rounded-lg shadow-sm border">
+          {questions.length === 0 ? (
+            <div className="p-12 text-center">
+              <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Questions Added</h3>
+              <p className="text-gray-600 mb-4">Upload a file or generate questions using AI to get started.</p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => setActiveTab("upload")}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  Upload Questions
+                </button>
+                <button
+                  onClick={() => setActiveTab("generate")}
+                  className="px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50"
+                >
+                  Generate with AI
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-6">
+              <div className="space-y-4">
+                {questions.map((q, index) => (
+                  <div key={q.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                          Q{index + 1}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          q.type === 'objective' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'
+                        }`}>
+                          {q.type === 'objective' ? 'MCQ' : 'Subjective'}
+                        </span>
+                        {q.source === 'ai' && (
+                          <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded flex items-center gap-1">
+                            <Sparkles size={10} />
+                            AI Generated
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => editQuestion(q.id)}
+                          className="p-1 text-gray-400 hover:text-blue-600"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => removeQuestion(q.id)}
+                          className="p-1 text-gray-400 hover:text-red-600"
+                        >
+                          <Trash size={16} />
+                        </button>
                       </div>
                     </div>
+                    <p className="text-gray-900 mb-3">{q.question}</p>
+                    {q.type === 'objective' && q.options && (
+                      <div className="space-y-2">
+                        {q.options.map((option, optIndex) => (
+                          <div
+                            key={optIndex}
+                            className={`p-2 rounded border text-sm ${
+                              q.correctAnswer === option
+                                ? 'bg-green-50 border-green-200 text-green-800'
+                                : 'bg-gray-50 border-gray-200'
+                            }`}
+                          >
+                            <span className="font-medium mr-2">{String.fromCharCode(65 + optIndex)}.</span>
+                            {option}
+                            {q.correctAnswer === option && (
+                              <CheckCircle2 className="inline ml-2" size={14} />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {(q.bloomLevel || q.courseOutcome) && (
+                      <div className="flex gap-2 mt-3">
+                        {q.bloomLevel && (
+                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            {q.bloomLevel}
+                          </span>
+                        )}
+                        {q.courseOutcome && (
+                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            {q.courseOutcome}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
           )}
         </div>
+      )}
+    </div>
+  </div>
+);
 
-        {/* File Upload Section */}
-        <div className="mb-4">
-          <label className="block mb-2 font-semibold">Attachments (PDF only)</label>
-          <input type="file" accept=".pdf" multiple onChange={handleFileUpload} className="w-full border p-2 rounded" />
-          {attachments.length > 0 && (
-            <div className="mt-4">
-              <h4 className="text-sm font-semibold mb-2">Selected ({attachments.length})</h4>
-              <div className="border rounded p-2 space-y-2">
-                {attachments.map((file, index) => (
-                  <div key={index} className="flex justify-between items-center py-1 px-2 hover:bg-gray-50 rounded">
-                    <span className="text-sm text-gray-700 truncate max-w-xs">📄 {file.name} ({(file.size / 1024).toFixed(2)} KB)</span>
-                    <button type="button" onClick={() => handleRemoveFile(index)} className="text-red-500 hover:text-red-700 font-bold">×</button>
+// STEP 4: Moved ReviewStep outside and passed props
+const ReviewStep = ({
+  questions, assignmentTitle, description, selectedModule,
+  totalPoints, dueDate, dueTime, loading, handleSave
+}) => {
+  const objectiveQuestions = questions.filter(q => q.type === 'objective').length;
+  const subjectiveQuestions = questions.filter(q => q.type === 'subjective').length;
+  
+  return (
+    <div className="max-w-6xl mx-auto">
+      <div className="flex items-center gap-2 mb-6">
+        <Eye className="text-blue-500" size={24} />
+        <div>
+          <h2 className="text-2xl font-bold">Review & Publish</h2>
+          <p className="text-gray-600">Review your assignment details and publish when ready</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Assignment Summary */}
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <BookOpen className="text-blue-500" size={20} />
+            <h3 className="text-lg font-semibold">Assignment Summary</h3>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium text-gray-900 mb-1">{assignmentTitle || "Untitled Assignment"}</h4>
+              <p className="text-sm text-gray-600">{description || "No description provided"}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-sm text-gray-500 uppercase tracking-wide">COURSE</div>
+                <div className="font-medium">{courseData.courseCode}</div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500 uppercase tracking-wide">MODULE</div>
+                <div className="font-medium">
+                  {selectedModule ? courseData.syllabus.modules.find(m => m._id === selectedModule)?.name : "Not selected"}
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-sm text-gray-500 uppercase tracking-wide">POINTS</div>
+                <div className="font-medium">{totalPoints}</div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500 uppercase tracking-wide">QUESTIONS</div>
+                <div className="font-medium">{questions.length}</div>
+              </div>
+            </div>
+            {dueDate && (
+              <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+                <Calendar className="text-blue-600" size={16} />
+                <span className="text-sm font-medium text-blue-900">
+                  Due: {new Date(dueDate + "T" + dueTime).toLocaleDateString()} at {dueTime}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+        {/* Question Review Status */}
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <h3 className="text-lg font-semibold mb-4">Question Review Status</h3>
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">{questions.length}</div>
+              <div className="text-sm text-green-600">Total</div>
+            </div>
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">{objectiveQuestions}</div>
+              <div className="text-sm text-blue-600">Objective</div>
+            </div>
+            <div className="text-center p-4 bg-purple-50 rounded-lg">
+              <div className="text-2xl font-bold text-purple-600">{subjectiveQuestions}</div>
+              <div className="text-sm text-purple-600">Subjective</div>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <h4 className="font-medium">Questions Overview</h4>
+            {questions.length === 0 ? (
+              <div className="text-center py-8">
+                <AlertCircle className="mx-auto h-8 w-8 text-yellow-500 mb-2" />
+                <p className="text-sm text-gray-600">No questions added yet</p>
+              </div>
+            ) : (
+              <div className="max-h-60 overflow-y-auto space-y-2">
+                {questions.map((q, index) => (
+                  <div key={q.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded">
+                    <span className="bg-white text-gray-600 text-xs px-2 py-1 rounded font-medium">
+                      {index + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-900 truncate">{q.question}</p>
+                      <span className={`text-xs px-2 py-0.5 rounded ${
+                        q.type === 'objective' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
+                      }`}>
+                        {q.type}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+        </div>
+      </div>
+      {/* Final Actions */}
+      <div className="mt-8 bg-white rounded-lg shadow-sm border p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-gray-900">Ready to Publish?</h3>
+            <p className="text-sm text-gray-600">Once published, students will be able to see and submit this assignment.</p>
+          </div>
+          <button
+            onClick={handleSave}
+            disabled={loading || !assignmentTitle || questions.length === 0}
+            className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Publishing...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 size={18} />
+                Publish Assignment
+              </>
+            )}
+          </button>
+        </div>
+        {(!assignmentTitle || questions.length === 0) && (
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="text-yellow-600" size={16} />
+              <p className="text-sm text-yellow-800">
+                Please provide an assignment title and add at least one question before publishing.
+              </p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-
-      {/* Right Sidebar */}
-      <div className="w-full lg:w-1/3 p-4 bg-gray-50 shadow-md rounded-lg h-fit">
-        <h3 className="text-lg font-semibold mb-4">Assignment Settings</h3>
-        <div className="mb-4">
-          <label className="block font-medium mb-1">Total Points</label>
-          <select className="w-full border p-2 rounded" value={totalPoints} onChange={(e) => setTotalPoints(e.target.value)}>
-            <option value="100">100</option>
-            <option value="50">50</option>
-            <option value="25">25</option>
-            <option value="10">10</option>
-            <option value="0">Ungraded</option>
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block font-medium mb-1">Due Date</label>
-          <input type="date" className="w-full border p-2 rounded" value={dueDate} onChange={(e) => setDueDate(e.target.value)} required />
-        </div>
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-300 transition-colors"
-          disabled={loading || !title || !dueDate}
-        >
-          {loading ? "Creating..." : "Create Assignment"}
-        </button>
-        {success && <div className="mt-4 p-2 bg-green-100 text-green-700 rounded">Assignment created successfully!</div>}
-        {error && <div className="mt-4 p-2 bg-red-100 text-red-700 rounded">{error}</div>}
-      </div>
-    </form>
+    </div>
   );
 };
 
-export default AssignmentForm;
+const AssignmentCreator = ({ onBack, onSave }) => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  // Assignment Details State
+  const [assignmentTitle, setAssignmentTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [instructions, setInstructions] = useState("");
+  const [selectedModule, setSelectedModule] = useState("");
+  const [totalPoints, setTotalPoints] = useState(100);
+  const [dueDate, setDueDate] = useState("");
+  const [dueTime, setDueTime] = useState("23:59");
+
+  // Questions State
+  const [questions, setQuestions] = useState([]);
+  const [activeTab, setActiveTab] = useState("upload"); // upload, generate, list
+  const [uploadedFile, setUploadedFile] = useState(null);
+  
+  // AI Generator State
+  const [numQuestions, setNumQuestions] = useState(5);
+  const [selectedBloomLevel, setSelectedBloomLevel] = useState("");
+  const [selectedModule2, setSelectedModule2] = useState("");
+  const [additionalContext, setAdditionalContext] = useState("");
+  const [generating, setGenerating] = useState(false);
+
+  const steps = [
+    { number: 1, title: "Assignment Details", subtitle: "Basic information and settings" },
+    { number: 2, title: "Questions", subtitle: "Upload or generate questions" },
+    { number: 3, title: "Review & Publish", subtitle: "Review and publish assignment" }
+  ];
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setUploadedFile(file);
+      parseUploadedFile(file);
+    }
+  };
+
+  const parseUploadedFile = (file) => {
+    const sampleQuestions = [
+      { id: Date.now() + 1, question: "What is the standard deviation?", type: "subjective", options: null, correctAnswer: null, source: "uploaded" },
+      { id: Date.now() + 2, question: "Which is a probability distribution?", type: "objective", options: ["Normal", "Abnormal", "Informal", "Formal"], correctAnswer: "Normal", source: "uploaded" }
+    ];
+    setQuestions(prev => [...prev, ...sampleQuestions]);
+  };
+
+  const generateAIQuestions = () => {
+    setGenerating(true);
+    setTimeout(() => {
+      const randomQuestions = dummyAIQuestions.sort(() => Math.random() - 0.5).slice(0, numQuestions).map(q => ({ ...q, id: Date.now() + Math.random(), source: "ai" }));
+      setQuestions(prev => [...prev, ...randomQuestions]);
+      setGenerating(false);
+    }, 2000);
+  };
+
+  const removeQuestion = (id) => setQuestions(prev => prev.filter(q => q.id !== id));
+  const editQuestion = (id) => console.log("Edit question", id);
+
+  const handleNext = () => currentStep < 3 && setCurrentStep(currentStep + 1);
+  const handlePrevious = () => currentStep > 1 && setCurrentStep(currentStep - 1);
+
+  const handleSave = () => {
+    setLoading(true);
+    setTimeout(() => {
+      const assignmentData = { title: assignmentTitle, description, instructions, module: selectedModule, totalPoints, dueDate, dueTime, questions };
+      console.log("Saving assignment:", assignmentData);
+      onSave?.(assignmentData);
+      setLoading(false);
+    }, 1000);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-white border-b px-6 py-4">
+        <div className="flex items-center justify-between max-w-6xl mx-auto">
+          <div className="flex items-center gap-4">
+            <button onClick={onBack} className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+              <ArrowLeft size={20} />
+              Back to Assignments
+            </button>
+            <div className="border-l border-gray-300 pl-4">
+              <h1 className="text-2xl font-bold">Create Assignment</h1>
+              <p className="text-gray-600">Design and configure your assignment</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-6 py-8">
+        <div className="max-w-6xl mx-auto">
+          <StepIndicator steps={steps} currentStep={currentStep} />
+          
+          <div className="mt-8">
+            {currentStep === 1 && (
+              <AssignmentDetailsStep
+                assignmentTitle={assignmentTitle} setAssignmentTitle={setAssignmentTitle}
+                description={description} setDescription={setDescription}
+                instructions={instructions} setInstructions={setInstructions}
+                selectedModule={selectedModule} setSelectedModule={setSelectedModule}
+                totalPoints={totalPoints} setTotalPoints={setTotalPoints}
+                dueDate={dueDate} setDueDate={setDueDate}
+                dueTime={dueTime} setDueTime={setDueTime}
+              />
+            )}
+            {currentStep === 2 && (
+              <QuestionsStep
+                questions={questions} activeTab={activeTab} setActiveTab={setActiveTab}
+                uploadedFile={uploadedFile} handleFileUpload={handleFileUpload}
+                numQuestions={numQuestions} setNumQuestions={setNumQuestions}
+                selectedBloomLevel={selectedBloomLevel} setSelectedBloomLevel={setSelectedBloomLevel}
+                selectedModule2={selectedModule2} setSelectedModule2={setSelectedModule2}
+                additionalContext={additionalContext} setAdditionalContext={setAdditionalContext}
+                generating={generating} generateAIQuestions={generateAIQuestions}
+                editQuestion={editQuestion} removeQuestion={removeQuestion}
+              />
+            )}
+            {currentStep === 3 && (
+              <ReviewStep
+                questions={questions} assignmentTitle={assignmentTitle} description={description}
+                selectedModule={selectedModule} totalPoints={totalPoints} dueDate={dueDate}
+                dueTime={dueTime} loading={loading} handleSave={handleSave}
+              />
+            )}
+          </div>
+
+          {currentStep < 3 && (
+            <div className="flex justify-between mt-12 max-w-6xl mx-auto">
+              <button
+                onClick={handlePrevious}
+                disabled={currentStep === 1}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={currentStep === 1 && !assignmentTitle}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
+              >
+                Next Step
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function AssignmentSectionRevamp({ onSave, onCancel }) {
+  return (
+    <AssignmentCreator 
+      onBack={onCancel}
+      onSave={(data) => {
+        console.log("Assignment saved:", data);
+        onSave(data);
+      }}
+    />
+  );
+}

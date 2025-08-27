@@ -203,7 +203,7 @@ const AssignmentCard = ({
 };
 
 const AllAssignments = ({ courseID }) => {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreatingAssignment, setIsCreatingAssignment] = useState(false); // MODIFIED STATE
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentAssignment, setCurrentAssignment] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -259,10 +259,6 @@ const AllAssignments = ({ courseID }) => {
     fetchAssignments();
   }, [courseID]);
 
-  const handleOpenCreateModal = () => {
-    setIsCreateModalOpen(true);
-  };
-
   const handleOpenEditModal = (assignment) => {
     setCurrentAssignment(assignment);
     setIsEditModalOpen(true);
@@ -293,6 +289,19 @@ const AllAssignments = ({ courseID }) => {
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
+  
+  // NEW: If creating an assignment, show the form component
+  if (isCreatingAssignment) {
+    return (
+      <AssignmentForm
+        onCancel={() => setIsCreatingAssignment(false)}
+        onSave={() => {
+          fetchAssignments();
+          setIsCreatingAssignment(false);
+        }}
+      />
+    );
+  }
 
   if (isLoading) {
     return (
@@ -317,7 +326,7 @@ const AllAssignments = ({ courseID }) => {
           <h2 className="text-2xl font-bold text-primary">Assignments</h2>
           <button
             className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-colors shadow-sm"
-            onClick={handleOpenCreateModal}
+            onClick={() => setIsCreatingAssignment(true)} // MODIFIED: On click, set state to true
           >
             <Plus size={18} />
             New Assignment
@@ -325,19 +334,9 @@ const AllAssignments = ({ courseID }) => {
         </div>
       </div>
 
-      {/* Create Assignment Modal */}
-      <Modal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        title="Create Assignment"
-      >
-        <AssignmentForm
-          courseID={courseID}
-          fetchAssignments={fetchAssignments}
-        />
-      </Modal>
+      {/* REMOVED: Create Assignment Modal is no longer needed here */}
 
-      {/* Edit Assignment Modal */}
+      {/* Edit Assignment Modal (remains unchanged) */}
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -361,7 +360,7 @@ const AllAssignments = ({ courseID }) => {
             </div>
             <button
               className="mt-4 inline-flex items-center gap-2 text-primary hover:text-primary/90 font-medium"
-              onClick={handleOpenCreateModal}
+              onClick={() => setIsCreatingAssignment(true)} // MODIFIED: On click, set state to true
             >
               <Plus size={18} />
               Create your first assignment
