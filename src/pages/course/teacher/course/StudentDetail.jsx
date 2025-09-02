@@ -64,7 +64,7 @@ const StudentTable = () => {
   // Column headers with sorting
   const SortableHeader = ({ label, sortKey }) => (
     <th
-      className="px-4 py-3 cursor-pointer hover:bg-accent1/60 transition-colors"
+      className="px-4 py-3 cursor-pointer text-black hover:bg-accent2 transition-colors dark:text-white"
       onClick={() => requestSort(sortKey)}
     >
       <div className="flex items-center space-x-1">
@@ -74,15 +74,15 @@ const StudentTable = () => {
             <ChevronUp
               className={`w-4 h-4 ${
                 sortConfig.direction === "asc"
-                  ? "text-white"
-                  : "text-emerald-200"
+                  ? "text-black dark:text-white"
+                  : "text-accent1"
               }`}
             />
             <ChevronDown
               className={`w-4 h-4 ${
                 sortConfig.direction === "desc"
-                  ? "text-white"
-                  : "text-emerald-200"
+                  ? "text-black dark:text-white"
+                  : "text-accent1"
               }`}
             />
           </div>
@@ -110,7 +110,7 @@ const StudentTable = () => {
       {/* Table */}
       <div className="overflow-x-auto border border-gray-200 rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-accent2 text-white">
+          <thead className="bg-accent2  dark:text-white">
             <tr>
               <th className="px-4 py-3">Sl. No.</th>
               <SortableHeader label="Roll No." sortKey="rollNo" />
