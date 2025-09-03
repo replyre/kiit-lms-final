@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext, useContext, useRef } from 'react';
 import { 
-  ChevronLeft, Book, Image, Video 
+  ChevronLeft, Book, Image, Video, ExternalLink, FileText, Play
 } from 'lucide-react';
 import { useCourse } from '../../../../../context/CourseContext';
 
@@ -17,6 +17,83 @@ const BLOCK_TYPES = {
   IMAGE: 'image',
   VIDEO: 'video'
 };
+
+// Helper function to determine file type from URL (copied from admin version)
+export const getFileTypeFromUrl = (url) => {
+  if (!url) return 'unknown';
+  
+  const urlLower = url.toLowerCase();
+  
+  // Video patterns
+  if (urlLower.includes('youtube.com') || urlLower.includes('youtu.be') || 
+      urlLower.includes('vimeo.com') || urlLower.includes('dailymotion.com') ||
+      urlLower.includes('twitch.tv') || urlLower.includes('.mp4') || 
+      urlLower.includes('.avi') || urlLower.includes('.mov') || 
+      urlLower.includes('.wmv') || urlLower.includes('.flv') ||
+      urlLower.includes('.webm') || urlLower.includes('.mkv')) {
+    return 'video';
+  }
+  
+  // PDF patterns
+  if (urlLower.includes('.pdf') || urlLower.includes('drive.google.com/file') ||
+      urlLower.includes('dropbox.com') || urlLower.includes('onedrive.com') ||
+      urlLower.includes('docs.google.com') && urlLower.includes('/document/')) {
+    return 'pdf';
+  }
+  
+  return 'other';
+};
+
+// Link display component for students
+function StudentLinkItem({ link, index }) {
+  const fileType = getFileTypeFromUrl(link);
+  
+  const getIcon = () => {
+    switch (fileType) {
+      case 'video':
+        return <Play className="w-4 h-4" />;
+      case 'pdf':
+        return <FileText className="w-4 h-4" />;
+      default:
+        return <ExternalLink className="w-4 h-4" />;
+    }
+  };
+  
+  const getColorClass = () => {
+    switch (fileType) {
+      case 'video':
+        return 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200';
+      case 'pdf':
+        return 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200';
+    }
+  };
+  
+  const getLabel = () => {
+    switch (fileType) {
+      case 'video':
+        return 'Video';
+      case 'pdf':
+        return 'PDF';
+      default:
+        return 'Link';
+    }
+  };
+  
+  return (
+    <a
+      href={link}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${getColorClass()}`}
+      title={link}
+    >
+      {getIcon()}
+      {getLabel()} {index + 1}
+    </a>
+  );
+}
 
 // ==================== CONTEXT & HOOKS ====================
 const AppContext = createContext();
@@ -97,10 +174,9 @@ function ModulesView() {
             <div>
               <h1 className="text-sm text-gray-500 dark:text-gray-400 mb-2">MODULE {modules.findIndex(m => m.id === activeModuleId) + 1}</h1>
               <h2 className="text-4xl font-bold text-gray-900 dark:text-white">
-                {activeModule?.title || 'Select a Module'}
+                {activeModule?.moduleTitle || 'Select a Module'}
               </h2>
             </div>
-            {/* "Add Chapter" button is removed */}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -155,33 +231,66 @@ function ChapterCard({ chapter }) {
     if (chapter.article) {
       setSelectedArticle(chapter.article);
       setCurrentView('article');
-    } else {
-        // Silently do nothing or show a disabled state, as handled by the button's style
     }
   };
 
+  const chapterLinks = chapter.link || [];
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-lg border border-gray-200 dark:border-gray-600 overflow-hidden hover:shadow-md dark:hover:shadow-xl transition-shadow cursor-pointer">
-      <div className={`${chapter.color || 'bg-gray-300 dark:bg-gray-600'} h-48 flex items-center justify-center`}>
-        <div className="w-16 h-16 bg-white/20 dark:bg-white/30 rounded-lg flex items-center justify-center">
-          <Book className="w-8 h-8 text-white" />
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-lg border border-gray-200 dark:border-gray-600 overflow-hidden hover:shadow-md dark:hover:shadow-xl transition-shadow group">
+      <div 
+        onClick={chapter.article ? handleChapterClick : undefined} 
+        className={chapter.article ? "cursor-pointer" : ""}
+      >
+        <div className={`${chapter.color || 'bg-gray-300 dark:bg-gray-600'} h-48 flex items-center justify-center relative`}>
+          <div className="w-16 h-16 bg-white/20 dark:bg-white/30 rounded-lg flex items-center justify-center">
+            <Book className="w-8 h-8 text-white" />
+          </div>
+          
+          {/* Links indicator overlay - show count if links exist */}
+          {chapterLinks.length > 0 && (
+            <div className="absolute top-3 right-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+              {chapterLinks.length} link{chapterLinks.length !== 1 ? 's' : ''}
+            </div>
+          )}
         </div>
-      </div>
-      <div className="p-6">
-        <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">{chapter.title}</h3>
-        <p className="text-gray-700 dark:text-gray-300 text-sm mb-4 line-clamp-3">{chapter.description}</p>
-        <button 
-          onClick={handleChapterClick}
-          className={`text-sm font-medium flex items-center transition-colors ${
-            chapter.article 
-              ? 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300' 
-              : 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
-          }`}
-          disabled={!chapter.article}
-        >
-          {chapter.article ? 'READ ARTICLE' : 'NO ARTICLE'}
-          {chapter.article && <span className="ml-2">→</span>}
-        </button>
+        
+        <div className="p-6">
+          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">{chapter.title}</h3>
+          <p className="text-gray-700 dark:text-gray-300 text-sm mb-4 line-clamp-3 h-16">{chapter.description}</p>
+          
+          {/* Links section - display chapter links */}
+          {chapterLinks.length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">RESOURCES</h4>
+              <div className="flex flex-wrap gap-2">
+                {chapterLinks.map((link, index) => (
+                  <StudentLinkItem key={index} link={link} index={index} />
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Article access button */}
+          <button 
+            onClick={handleChapterClick}
+            className={`w-full text-sm font-medium flex items-center justify-center py-2 rounded-lg border transition-colors ${
+              chapter.article 
+                ? 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20' 
+                : 'text-gray-400 dark:text-gray-500 cursor-not-allowed border-gray-200 dark:border-gray-600'
+            }`}
+            disabled={!chapter.article}
+          >
+            {chapter.article ? (
+              <>
+                READ ARTICLE
+                <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
+              </>
+            ) : (
+              'NO ARTICLE AVAILABLE'
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -231,7 +340,6 @@ function ArticleView() {
               <ChevronLeft className="w-5 h-5 mr-2" />
               Back to Modules
             </button>
-            {/* "Update Article" button is removed */}
           </div>
           <div className="flex items-center space-x-4">
              <span className="text-xs text-gray-500 dark:text-gray-400">{Math.round(scrollProgress)}% READ</span>
@@ -248,7 +356,7 @@ function ArticleView() {
       <div 
         ref={contentRef}
         className="max-w-4xl mx-auto px-4 py-8 overflow-y-auto"
-        style={{ maxHeight: 'calc(100vh - 120px)' }} // Adjusted height
+        style={{ maxHeight: 'calc(100vh - 120px)' }}
       >
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 text-center">
           {selectedArticle.title}
@@ -332,6 +440,5 @@ function BlockComponent({ block }) {
 
   return <div className="my-2">{renderBlock()}</div>;
 }
-
 
 export default StudentContentSection;

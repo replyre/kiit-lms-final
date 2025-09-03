@@ -3,10 +3,11 @@ import {
   ChevronLeft, Book, Bold, Italic, Underline, Link,
   Plus, Type, Heading1, Heading2, Heading3, List, ListOrdered,
   Quote, Code, Image as ImageIcon, Video, MoreHorizontal, Trash2,
-  GripVertical, X
+  GripVertical, X, Filter, ExternalLink, FileText
 } from 'lucide-react';
 import { useCourse } from '../../../../../context/CourseContext';
-import { addChapterToModule, addArticleToChapter, updateArticle, deleteChapter } from '../../../../../services/article.service';
+import { addChapterToModule, addArticleToChapter, updateArticle, deleteChapter, updateChapterLinks } from '../../../../../services/article.service';
+import { LinkItem, AddLinksModal, getFileTypeFromUrl } from './ChapterLinks';
 
 // --- Block Types for the Editor ---
 const BLOCK_TYPES = {
@@ -60,6 +61,11 @@ function ContentSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("Updating Course...");
+  
+  // Link management states
+  const [linkFilter, setLinkFilter] = useState('all');
+  const [linkModalOpen, setLinkModalOpen] = useState(false);
+  const [selectedChapterForLinks, setSelectedChapterForLinks] = useState(null);
 
   useEffect(() => {
     if (courseData?.syllabus?.modules) {
@@ -147,7 +153,6 @@ function ContentSection() {
     setCurrentView('article');
   };
 
-  // ✅ MODIFIED: Switched from 'imageUrl' to 'imageFile' to handle file uploads.
   const handleCreateArticle = async (articleData) => {
     setLoadingText("Creating Article...");
     setIsLoading(true);
@@ -161,7 +166,6 @@ function ContentSection() {
         formData.append('author', author);
         formData.append('date', date);
 
-        // Append the file if it exists, with the key 'image'
         if (imageFile) {
             formData.append('image', imageFile);
         }
@@ -188,6 +192,36 @@ function ContentSection() {
     } finally { setIsLoading(false); }
   };
 
+  // Link management function
+  const handleUpdateChapterLinks = async (chapterId, moduleId, links) => {
+    setLoadingText("Updating Chapter Links...");
+    setIsLoading(true);
+
+    try {
+      const response = await updateChapterLinks(courseData.id, moduleId, chapterId, links);
+      
+      if (response.success && response.chapter) {
+        const newCourseData = JSON.parse(JSON.stringify(courseData));
+        const moduleToUpdate = newCourseData.syllabus.modules.find(m => m._id === moduleId);
+        if (moduleToUpdate) {
+          const chapterToUpdate = moduleToUpdate.chapters.find(c => c._id === chapterId);
+          if (chapterToUpdate) {
+            chapterToUpdate.link = links;
+            setCourseData(newCourseData);
+            alert('Chapter links updated successfully!');
+          }
+        }
+      } else {
+        throw new Error(response.message || 'Failed to update chapter links.');
+      }
+    } catch (error) {
+      console.error('Failed to update chapter links:', error);
+      alert(error.message || 'Failed to update chapter links. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const contextValue = {
     currentView, setCurrentView,
     selectedArticle, setSelectedArticle,
@@ -198,7 +232,14 @@ function ContentSection() {
     openModal: () => setIsModalOpen(true),
     handleDeleteChapter,
     handleAddNewArticle,
-    handleCreateArticle
+    handleCreateArticle,
+    handleUpdateChapterLinks,
+    linkFilter, 
+    setLinkFilter,
+    linkModalOpen, 
+    setLinkModalOpen,
+    selectedChapterForLinks, 
+    setSelectedChapterForLinks
   };
 
   return (
@@ -213,46 +254,117 @@ function ContentSection() {
             onClose={() => setIsModalOpen(false)}
           />
         )}
+        {linkModalOpen && selectedChapterForLinks && (
+          <AddLinksModal
+            isOpen={linkModalOpen}
+            onClose={() => {
+              setLinkModalOpen(false);
+              setSelectedChapterForLinks(null);
+            }}
+            links={selectedChapterForLinks.link || []}
+            onSave={(newLinks) => handleUpdateChapterLinks(
+              selectedChapterForLinks.id, 
+              activeModuleId, 
+              newLinks
+            )}
+            chapterTitle={selectedChapterForLinks.title}
+          />
+        )}
       </div>
     </AppContext.Provider>
   );
 }
 
-
 // =================================================================
 // MODULES VIEW COMPONENTS
 // =================================================================
 function ModulesView() {
-  const { modules, activeModuleId, openModal } = useAppContext();
+  const { 
+    modules, 
+    activeModuleId, 
+    openModal, 
+    linkFilter, 
+    setLinkFilter
+  } = useAppContext();
+  
   const activeModule = modules.find(m => m.id === activeModuleId);
+
+  // Filter chapters based on link filter
+  const filteredChapters = activeModule?.chapters?.filter(chapter => {
+    if (linkFilter === 'all') return true;
+    
+    if (!chapter.link || chapter.link.length === 0) return false;
+    
+    return chapter.link.some(link => {
+      const fileType = getFileTypeFromUrl(link);
+      return linkFilter === fileType;
+    });
+  }) || [];
 
   return (
     <div className="flex h-screen">
       <ModuleSidebar />
       <div className="flex-1 p-8 overflow-y-auto">
         <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-sm text-gray-500 mb-2">MODULE {modules.findIndex(m => m.id === activeModuleId) + 1}</h1>
               <h2 className="text-4xl font-bold text-gray-900">{activeModule?.moduleTitle || 'Select a Module'}</h2>
             </div>
-            <button
-              onClick={openModal}
-              className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
-              <Plus className="w-5 h-5 mr-2" />
-              Add Chapter
-            </button>
+            <div className="flex items-center space-x-2">
+              {/* Filter Dropdown */}
+              <div className="relative">
+                <select
+                  value={linkFilter}
+                  onChange={(e) => setLinkFilter(e.target.value)}
+                  className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">All Chapters</option>
+                  <option value="pdf">PDF Links</option>
+                  <option value="video">Video Links</option>
+                </select>
+                <Filter className="w-4 h-4 absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+              
+              <button
+                onClick={openModal}
+                className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                <Plus className="w-5 h-5 mr-2" />
+               Chapter
+              </button>
+            </div>
           </div>
+          
+          {/* Filter indicator */}
+          {linkFilter !== 'all' && (
+            <div className="mb-4 flex items-center space-x-2 text-sm text-gray-600">
+              <Filter className="w-4 h-4" />
+              <span>Showing chapters with {linkFilter} links ({filteredChapters.length} results)</span>
+              <button
+                onClick={() => setLinkFilter('all')}
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                Clear filter
+              </button>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {activeModule?.chapters?.length > 0 ? (
-              activeModule.chapters.map((chapter) => (
+            {filteredChapters.length > 0 ? (
+              filteredChapters.map((chapter) => (
                 <ChapterCard key={chapter.id || chapter.title} chapter={chapter} moduleId={activeModule.id} />
               ))
-            ) : (
+            ) : linkFilter === 'all' ? (
               <div className="col-span-full text-center py-10 text-gray-500">
                 <Book className="w-12 h-12 mx-auto text-gray-300 mb-4" />
                 <h3 className="text-lg font-semibold">No Chapters Available</h3>
                 <p className="text-sm">This module doesn't have any chapters yet.</p>
+              </div>
+            ) : (
+              <div className="col-span-full text-center py-10 text-gray-500">
+                <Filter className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                <h3 className="text-lg font-semibold">No Chapters Found</h3>
+                <p className="text-sm">No chapters have {linkFilter} links.</p>
               </div>
             )}
           </div>
@@ -288,8 +400,15 @@ function ModuleSidebar() {
 }
 
 function ChapterCard({ chapter, moduleId }) {
-  const { setCurrentView, setSelectedArticle, handleDeleteChapter, handleAddNewArticle } = useAppContext();
-  console.log('ChapterCard rendered with chapter:', chapter.article);
+  const { 
+    setCurrentView, 
+    setSelectedArticle, 
+    handleDeleteChapter, 
+    handleAddNewArticle,
+    setLinkModalOpen,
+    setSelectedChapterForLinks
+  } = useAppContext();
+
   const handleChapterClick = () => {
     if (chapter.article) {
       setSelectedArticle(chapter.article);
@@ -307,6 +426,14 @@ function ChapterCard({ chapter, moduleId }) {
     handleDeleteChapter(moduleId, chapter.id);
   };
 
+  const onManageLinksClick = (e) => {
+    e.stopPropagation();
+    setSelectedChapterForLinks(chapter);
+    setLinkModalOpen(true);
+  };
+
+  const chapterLinks = chapter.link || [];
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow group relative flex flex-col">
       <button
@@ -317,23 +444,44 @@ function ChapterCard({ chapter, moduleId }) {
       </button>
 
       <div onClick={chapter.article ? handleChapterClick : undefined} className={chapter.article ? "cursor-pointer" : ""}>
-        <div className={`${chapter.color || 'bg-gray-300'} h-48 flex items-center justify-center`}>
+        <div className={`${chapter.color || 'bg-gray-300'} h-48 flex items-center justify-center relative`}>
           <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center">
-            {<Book className="w-8 h-8 text-white " />}
-        
+            <Book className="w-8 h-8 text-white" />
           </div>
+          
+          {/* Links indicator */}
+         
         </div>
+        
         <div className="p-6">
           <h3 className="text-sm font-semibold text-gray-500 mb-2">{chapter.title}</h3>
           <p className="text-gray-700 text-sm mb-4 line-clamp-3 h-16">{chapter.description}</p>
+          
+          {/* Links section */}
+          {chapterLinks.length > 0 && (
+            <div className=" flex justify-start items-center gap-2">
+              {chapterLinks.map((link, index) => (
+                <LinkItem key={index} link={link} />
+              ))}
+            
+            </div>
+          )}
         </div>
       </div>
       
-      <div className="p-6 pt-0 mt-auto">
+      <div className="p-6 pt-0 mt-auto space-y-2">
+        {/* Manage Links Button */}
+        <button
+          onClick={onManageLinksClick}
+          className="w-full text-sm font-medium flex items-center justify-center text-purple-600 hover:text-purple-700 border border-purple-200 rounded-lg py-2 hover:bg-purple-50 transition-colors">
+          <ExternalLink className="w-4 h-4 mr-2" />
+          Manage Links ({chapterLinks.length})
+        </button>
+        
         {chapter.article ? (
           <button
             onClick={handleChapterClick}
-            className="w-full text-sm font-medium flex items-center text-blue-600 hover:text-blue-700 group-hover:text-blue-800">
+            className="w-full text-sm font-medium flex items-center justify-center text-blue-600 hover:text-blue-700 group-hover:text-blue-800">
             VIEW ARTICLE
             <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
           </button>
@@ -350,7 +498,6 @@ function ChapterCard({ chapter, moduleId }) {
   );
 }
 
-
 // =================================================================
 // ARTICLE VIEW & EDITOR
 // =================================================================
@@ -365,29 +512,23 @@ function ArticleView() {
   const [editorContent, setEditorContent] = useState('');
   const [editorAuthor, setEditorAuthor] = useState('');
   const [editorDate, setEditorDate] = useState('');
-  
-  // ✅ MODIFIED: State for image display URL and the actual file object.
   const [editorImage, setEditorImage] = useState('');
-  const [imageFile, setImageFile] = useState(null); // Will hold the File object for upload
-  
+  const [imageFile, setImageFile] = useState(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const contentRef = useRef(null);
-  const fileInputRef = useRef(null); // ✅ NEW: Ref for the hidden file input
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (selectedArticle) {
         setEditorTitle(selectedArticle.title || '');
         setEditorContent(selectedArticle.content || '');
         setEditorAuthor(selectedArticle.author || 'Admin');
-        // ✅ MODIFIED: Updated placeholder text for image
         setEditorImage(selectedArticle.image?.imageUrl || 'https://placehold.co/800x400/e2e8f0/e2e8f0?text=Select+an+Image');
         
-        // Format date for the datetime-local input
         const date = new Date(selectedArticle.date || Date.now());
         date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
         setEditorDate(date.toISOString().slice(0, 16));
 
-        // ✅ NEW: Reset the image file state when a new article is selected
         setImageFile(null);
     }
   }, [selectedArticle]);
@@ -408,7 +549,6 @@ function ArticleView() {
     }
   }, [selectedArticle]);
 
-  // ✅ NEW: Cleanup for blob URLs to prevent memory leaks
   useEffect(() => {
     const currentImageURL = editorImage;
     return () => {
@@ -418,7 +558,6 @@ function ArticleView() {
     };
   }, [editorImage]);
 
-  // ✅ MODIFIED: This function now handles file uploads for article updates.
   const handleUpdate = async () => {
     if (!selectedArticle) return;
     setLoadingText("Saving Changes...");
@@ -431,7 +570,6 @@ function ArticleView() {
       formData.append('content', editorContent);
       formData.append('date', new Date(editorDate).toISOString());
       
-      // If a new image file was selected, append it to the form data.
       if (imageFile) {
         formData.append('image', imageFile);
       }
@@ -459,7 +597,6 @@ function ArticleView() {
     } finally { setIsLoading(false); }
   };
   
-  // ✅ MODIFIED: Now passes the imageFile object when creating an article.
   const handleSave = () => {
     if (selectedArticle?.isNew) {
       handleCreateArticle({
@@ -469,19 +606,18 @@ function ArticleView() {
         content: editorContent,
         author: editorAuthor,
         date: new Date(editorDate).toISOString(),
-        imageFile: imageFile // Pass the file object
+        imageFile: imageFile
       });
     } else {
       handleUpdate();
     }
   };
 
-  // ✅ NEW: Handler for the file input change event.
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setImageFile(file); // Store the file object in state
-      setEditorImage(URL.createObjectURL(file)); // Create a temporary URL for preview
+      setImageFile(file);
+      setEditorImage(URL.createObjectURL(file));
     }
   };
 
@@ -543,7 +679,6 @@ function ArticleView() {
             placeholder="Your Article Title..."
             className="w-full text-4xl font-bold text-gray-900 mb-8 text-center bg-transparent focus:outline-none ring-2 ring-transparent focus:ring-blue-200 rounded-md p-2"
         />
-        {/* ✅ MODIFIED: Image upload UI now uses a file input. */}
         <div className="mb-8 relative group">
           <img
             src={editorImage}

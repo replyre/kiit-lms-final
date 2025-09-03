@@ -82,3 +82,31 @@ export const deleteChapter = async (courseId, moduleId, chapterId) => {
         throw error;
     }
 };
+
+
+
+
+
+/**
+ * Updates the links array for a specific chapter using PUT API
+ * @param {string} courseId - The ID of the course
+ * @param {string} moduleId - The ID of the module
+ * @param {string} chapterId - The ID of the chapter
+ * @param {string[]} links - Array of link URLs to save
+ * @returns {Promise<object>} The server response with updated chapter
+ */
+export const updateChapterLinks = async (courseId, moduleId, chapterId, links) => {
+  try {
+    const response = await api.put(
+      `/syllabus/course/${courseId}/syllabus/module/${moduleId}/chapter/${chapterId}`,
+      { link: links },
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating chapter links:", error.response?.data || error.message);
+    throw error;
+  }
+};
