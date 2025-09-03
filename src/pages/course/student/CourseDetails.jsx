@@ -254,7 +254,7 @@ const CourseDetails = () => {
         );
       case "Discussion": return <DiscussionForum />;
       case "Class Rec.": return <LecturePanel />;
-      case "E-learning": return <StudentContentSection />;
+      case "E-Learning": return <StudentContentSection />;
       case "Graded": return <StudentAssignmentSection courseID={courseID} selectedID="0" />;
       case "Self Assessment": return <SelfQuiz />;
       case "Activity": return <StudentActivitySection courseID={courseID} selectedID="0" />;
