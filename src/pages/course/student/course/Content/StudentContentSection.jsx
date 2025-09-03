@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext, useContext, useRef } from 'react';
 import { 
-  ChevronLeft, Book, Image, Video, ExternalLink, FileText, Play
+  ChevronLeft, Book, Image, Video, ExternalLink, FileText, Play, Filter
 } from 'lucide-react';
 import { useCourse } from '../../../../../context/CourseContext';
 
@@ -18,8 +18,8 @@ const BLOCK_TYPES = {
   VIDEO: 'video'
 };
 
-// Helper function to determine file type from URL (copied from admin version)
-export const getFileTypeFromUrl = (url) => {
+// Helper function to determine file type from URL
+const getFileTypeFromUrl = (url) => {
   if (!url) return 'unknown';
   
   const urlLower = url.toLowerCase();
@@ -114,6 +114,7 @@ function StudentContentSection() {
   const [activeModuleId, setActiveModuleId] = useState(null);
   const [currentView, setCurrentView] = useState('modules');
   const [selectedArticle, setSelectedArticle] = useState(null);
+  const [linkFilter, setLinkFilter] = useState('all');
 
   useEffect(() => {
     if (courseData?.syllabus?.modules) {
@@ -124,7 +125,6 @@ function StudentContentSection() {
         chapters: module.chapters ? module.chapters.map(chapter => ({
           ...chapter,
           id: chapter._id,
-          // The article object is simplified for easy access
           article: chapter.articles && chapter.articles.length > 0 ? {
             ...chapter.articles[0],
             id: chapter.articles[0]._id,
@@ -133,14 +133,12 @@ function StudentContentSection() {
         })) : []
       }));
       setModules(transformedModules);
-      // Automatically select the first module if none is active
       if (transformedModules.length > 0 && !activeModuleId) {
         setActiveModuleId(transformedModules[0].id);
       }
     }
   }, [courseData, activeModuleId]);
 
-  // Context value now only contains state and navigation functions
   const contextValue = {
     currentView,
     setCurrentView,
@@ -149,6 +147,8 @@ function StudentContentSection() {
     modules,
     activeModuleId,
     setActiveModuleId,
+    linkFilter,
+    setLinkFilter,
   };
 
   return (
@@ -162,8 +162,20 @@ function StudentContentSection() {
 
 // ==================== MODULES VIEW COMPONENTS ====================
 function ModulesView() {
-  const { modules, activeModuleId } = useAppContext();
+  const { modules, activeModuleId, linkFilter, setLinkFilter } = useAppContext();
   const activeModule = modules.find(m => m.id === activeModuleId);
+
+  // Filter chapters based on link filter
+  const filteredChapters = activeModule?.chapters?.filter(chapter => {
+    if (linkFilter === 'all') return true;
+    
+    if (!chapter.link || chapter.link.length === 0) return false;
+    
+    return chapter.link.some(link => {
+      const fileType = getFileTypeFromUrl(link);
+      return linkFilter === fileType;
+    });
+  }) || [];
 
   return (
     <div className="flex h-screen">
@@ -177,18 +189,53 @@ function ModulesView() {
                 {activeModule?.moduleTitle || 'Select a Module'}
               </h2>
             </div>
+            
+            {/* Filter Dropdown */}
+            <div className="relative">
+              <select
+                value={linkFilter}
+                onChange={(e) => setLinkFilter(e.target.value)}
+                className="appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-8 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              >
+                <option value="all">All Chapters</option>
+                <option value="pdf">PDF Resources</option>
+                <option value="video">Video Resources</option>
+                <option value="other">Other Resources</option>
+              </select>
+              <Filter className="w-4 h-4 absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
           </div>
           
+          {/* Filter indicator */}
+          {linkFilter !== 'all' && (
+            <div className="mb-4 flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+              <Filter className="w-4 h-4" />
+              <span>Showing chapters with {linkFilter} resources ({filteredChapters.length} results)</span>
+              <button
+                onClick={() => setLinkFilter('all')}
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 underline"
+              >
+                Clear filter
+              </button>
+            </div>
+          )}
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {activeModule?.chapters?.length > 0 ? (
-                activeModule.chapters.map((chapter) => (
+            {filteredChapters.length > 0 ? (
+                filteredChapters.map((chapter) => (
                     <ChapterCard key={chapter.id} chapter={chapter} />
                 ))
-            ) : (
+            ) : linkFilter === 'all' ? (
                 <div className="col-span-full text-center py-10 text-gray-500 dark:text-gray-400">
                     <Book className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
                     <h3 className="text-lg font-semibold">No Chapters Available</h3>
                     <p className="text-sm">This module doesn't have any chapters yet.</p>
+                </div>
+            ) : (
+                <div className="col-span-full text-center py-10 text-gray-500 dark:text-gray-400">
+                    <Filter className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                    <h3 className="text-lg font-semibold">No Chapters Found</h3>
+                    <p className="text-sm">No chapters have {linkFilter} resources.</p>
                 </div>
             )}
           </div>
@@ -247,10 +294,10 @@ function ChapterCard({ chapter }) {
             <Book className="w-8 h-8 text-white" />
           </div>
           
-          {/* Links indicator overlay - show count if links exist */}
+          {/* Links indicator overlay */}
           {chapterLinks.length > 0 && (
             <div className="absolute top-3 right-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-              {chapterLinks.length} link{chapterLinks.length !== 1 ? 's' : ''}
+              {chapterLinks.length} resource{chapterLinks.length !== 1 ? 's' : ''}
             </div>
           )}
         </div>
@@ -259,7 +306,7 @@ function ChapterCard({ chapter }) {
           <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">{chapter.title}</h3>
           <p className="text-gray-700 dark:text-gray-300 text-sm mb-4 line-clamp-3 h-16">{chapter.description}</p>
           
-          {/* Links section - display chapter links */}
+          {/* Links section */}
           {chapterLinks.length > 0 && (
             <div className="mb-4">
               <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">RESOURCES</h4>
@@ -373,7 +420,6 @@ function ArticleView() {
           </div>
         </div>
         <div className="max-w-3xl mx-auto">
-          {/* The editor is now a read-only renderer */}
           <ReadOnlyContentRenderer article={selectedArticle} />
         </div>
       </div>
@@ -387,12 +433,9 @@ function ReadOnlyContentRenderer({ article }) {
 
   useEffect(() => {
     if (article?.content) {
-      // Split content into blocks, assuming double newline is the separator
       const paragraphs = article.content.split('\n\n').filter(p => p.trim());
       const initialBlocks = paragraphs.map((content, index) => ({
         id: `block-${article.id}-${index}`,
-        // For simplicity, we'll assume most are paragraphs.
-        // A more robust system would save the type with the content.
         type: BLOCK_TYPES.PARAGRAPH, 
         content: content.trim(),
       }));
@@ -410,7 +453,6 @@ function ReadOnlyContentRenderer({ article }) {
 }
 
 function BlockComponent({ block }) {
-  // This component now only renders content, without any editing capabilities.
   const renderBlock = () => {
     const contentHtml = { __html: block.content };
 

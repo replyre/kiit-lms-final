@@ -380,7 +380,7 @@ const CourseManagement = () => {
       {liveMeeting && (
         <button
           onClick={handleJoinLiveClass}
-          className="flex justify-center items-center gap-2 bottom-[40%] fixed right-8 text-lg px-6 py-2 bg-primary/80 text-white rounded-lg hover:bg-primary transition-colors z-50"
+          className=" absolute top-20 flex justify-center items-center gap-2  right-8 text-lg px-6 py-2 bg-primary/80 text-white rounded-lg hover:bg-primary transition-colors z-50"
         >
           <MdLiveTv />
           Join Live Class
@@ -401,7 +401,7 @@ const CourseManagement = () => {
           </div>
           
           {/* Live Class Button */}
-          <div className="ml-8">
+         {!liveMeeting && <div className="ml-8">
             <button
               disabled
               className="flex justify-center items-center gap-2 text-lg px-6 py-2 bg-gray-400 dark:bg-gray-600 text-white dark:text-gray-300 rounded-lg cursor-not-allowed"
@@ -409,7 +409,7 @@ const CourseManagement = () => {
               <MdLiveTv />
               No Live Class Now
             </button>
-          </div>
+          </div>}
         </div>
       </div>
 
@@ -456,7 +456,7 @@ const CourseManagement = () => {
                 }`}
               >
                 <Video className="w-5 h-5" />
-                <span>Recordings</span>
+                <span>Class Rec.</span>
                 {/* Add line below when selected */}
                 {selectedOption === "Recorded Lectures" && (
                   <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-full h-1 bg-accent1 dark:bg-accent1 rounded-full"></div>
@@ -473,7 +473,7 @@ const CourseManagement = () => {
                 }`}
               >
                 <FileText className="w-5 h-5" />
-                <span>Content</span>
+                <span>E-Learning</span>
                 {/* Add line below when selected */}
                 {selectedOption === "Content" && (
                   <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-full h-1 bg-accent1 dark:bg-accent1 rounded-full"></div>

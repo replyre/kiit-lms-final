@@ -21,12 +21,12 @@ import AssignmentStatusChart from "./AssignmentStatusChart";
 const DashboardSemesterContent = ({ setActiveSection }) => {
   const navigate = useNavigate();
   // 2. Get meetings and their state from the context
-  const { meetings, loading: meetingsLoading, error: meetingsError,  } = useMeeting();
+  const { meetings, loading: meetingsLoading, error: meetingsError } = useMeeting();
   
   const [coursesData, setCoursesData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  console.log(coursesData);
+  console.log("course meetings",meetings);
 
   const allAssignmentsCount = coursesData.courses?.reduce((total, course) => {
     const assignmentsInCourse = course.assignments?.length || 0;
@@ -119,9 +119,11 @@ const DashboardSemesterContent = ({ setActiveSection }) => {
   
   // Effect to handle meeting loading errors
   useEffect(() => {
+    
     if (meetingsError) {
       toast.error("Failed to load meetings. Please try again later.");
     }
+    
   }, [meetingsError]);
 
 

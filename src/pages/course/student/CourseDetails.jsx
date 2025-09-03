@@ -55,8 +55,8 @@ const navigationOptions = {
     title: "Content",
     icon: <MonitorPlay className="w-5 h-5" />,
     items: [
-      { label: "Recorded", icon: <Video className="w-5 h-5" /> },
-      { label: "E-Content", icon: <FileText className="w-5 h-5" /> },
+      { label: "Class Rec.", icon: <Video className="w-5 h-5" /> },
+      { label: "E-Learning", icon: <FileText className="w-5 h-5" /> },
     ],
   },
   assessment: {
