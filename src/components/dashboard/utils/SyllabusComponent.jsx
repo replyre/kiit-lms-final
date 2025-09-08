@@ -56,7 +56,7 @@ export default function SyllabusAccordion({ course }) {
                             Title
                           </th>
                           <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
-                            Topics
+                            Description
                           </th>
                         </tr>
                       </thead>
@@ -71,11 +71,9 @@ export default function SyllabusAccordion({ course }) {
                               {module.moduleTitle}
                             </td>
                             <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 align-top bg-white dark:bg-gray-800">
-                              <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                                {module.topics.map((topic, index) => (
-                                  <li key={index}>{topic}</li>
-                                ))}
-                              </ul>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                                {module.description}
+                              </p>
                             </td>
                           </tr>
                         ))}

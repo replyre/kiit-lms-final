@@ -1,486 +1,348 @@
-import React, { useState, useEffect, createContext, useContext, useRef } from 'react';
-import { 
-  ChevronLeft, Book, Image, Video, ExternalLink, FileText, Play, Filter
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileText, Video, Presentation, Eye, Download, Link, ExternalLink, ChevronDown, ChevronRight, Play, BookOpen } from 'lucide-react';
 import { useCourse } from '../../../../../context/CourseContext';
+import { 
+  getCourseSyllabus, 
+  getModuleById
+} from '../../../../../services/content.service';
 
-// Block Types for the Editor (used for rendering)
-const BLOCK_TYPES = {
-  PARAGRAPH: 'paragraph',
-  HEADING_1: 'heading1',
-  HEADING_2: 'heading2', 
-  HEADING_3: 'heading3',
-  BULLETED_LIST: 'bulleted-list',
-  NUMBERED_LIST: 'numbered-list',
-  QUOTE: 'quote',
-  CODE: 'code',
-  IMAGE: 'image',
-  VIDEO: 'video'
-};
+const StudentContentSection = () => {
+  const { courseData, setCourseData } = useCourse();
+  const [selectedModule, setSelectedModule] = useState(null);
+  const [selectedContentType, setSelectedContentType] = useState('pdfs');
+  const [isLoading, setIsLoading] = useState(false);
+  const [expandedModule, setExpandedModule] = useState(null);
 
-// Helper function to determine file type from URL
-const getFileTypeFromUrl = (url) => {
-  if (!url) return 'unknown';
-  
-  const urlLower = url.toLowerCase();
-  
-  // Video patterns
-  if (urlLower.includes('youtube.com') || urlLower.includes('youtu.be') || 
-      urlLower.includes('vimeo.com') || urlLower.includes('dailymotion.com') ||
-      urlLower.includes('twitch.tv') || urlLower.includes('.mp4') || 
-      urlLower.includes('.avi') || urlLower.includes('.mov') || 
-      urlLower.includes('.wmv') || urlLower.includes('.flv') ||
-      urlLower.includes('.webm') || urlLower.includes('.mkv')) {
-    return 'video';
-  }
-  
-  // PDF patterns
-  if (urlLower.includes('.pdf') || urlLower.includes('drive.google.com/file') ||
-      urlLower.includes('dropbox.com') || urlLower.includes('onedrive.com') ||
-      urlLower.includes('docs.google.com') && urlLower.includes('/document/')) {
-    return 'pdf';
-  }
-  
-  return 'other';
-};
-
-// Link display component for students
-function StudentLinkItem({ link, index }) {
-  const fileType = getFileTypeFromUrl(link);
-  
-  const getIcon = () => {
-    switch (fileType) {
-      case 'video':
-        return <Play className="w-4 h-4" />;
-      case 'pdf':
-        return <FileText className="w-4 h-4" />;
-      default:
-        return <ExternalLink className="w-4 h-4" />;
-    }
+  // Content type configurations
+  const contentTypes = {
+    pdfs: { label: 'PDFs', icon: FileText, key: 'pdfs', countKey: 'pdfCount' },
+    ppts: { label: 'Presentations', icon: Presentation, key: 'ppts', countKey: 'pptCount' },
+    videos: { label: 'Videos', icon: Video, key: 'videos', countKey: 'videoCount' },
+    links: { label: 'Links', icon: Link, key: 'links', countKey: 'linkCount' }
   };
-  
-  const getColorClass = () => {
-    switch (fileType) {
-      case 'video':
-        return 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200';
-      case 'pdf':
-        return 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200';
-      default:
-        return 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200';
-    }
-  };
-  
-  const getLabel = () => {
-    switch (fileType) {
-      case 'video':
-        return 'Video';
-      case 'pdf':
-        return 'PDF';
-      default:
-        return 'Link';
-    }
-  };
-  
-  return (
-    <a
-      href={link}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${getColorClass()}`}
-      title={link}
-    >
-      {getIcon()}
-      {getLabel()} {index + 1}
-    </a>
-  );
-}
-
-// ==================== CONTEXT & HOOKS ====================
-const AppContext = createContext();
-
-const useAppContext = () => {
-  const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useAppContext must be used within AppContext.Provider');
-  }
-  return context;
-};
-
-// ==================== MAIN APP COMPONENT ====================
-function StudentContentSection() {
-  const { courseData } = useCourse();
-  
-  const [modules, setModules] = useState([]);
-  const [activeModuleId, setActiveModuleId] = useState(null);
-  const [currentView, setCurrentView] = useState('modules');
-  const [selectedArticle, setSelectedArticle] = useState(null);
-  const [linkFilter, setLinkFilter] = useState('all');
 
   useEffect(() => {
-    if (courseData?.syllabus?.modules) {
-      const transformedModules = courseData.syllabus.modules.map(module => ({
-        ...module,
-        id: module._id,
-        name: module.moduleTitle,
-        chapters: module.chapters ? module.chapters.map(chapter => ({
-          ...chapter,
-          id: chapter._id,
-          article: chapter.articles && chapter.articles.length > 0 ? {
-            ...chapter.articles[0],
-            id: chapter.articles[0]._id,
-            chapterId: chapter._id,
-          } : null
-        })) : []
-      }));
-      setModules(transformedModules);
-      if (transformedModules.length > 0 && !activeModuleId) {
-        setActiveModuleId(transformedModules[0].id);
-      }
+    if (courseData?.syllabus?.modules?.length > 0) {
+      const firstModule = courseData.syllabus.modules[0];
+      setExpandedModule(firstModule._id);
+      setSelectedModule(firstModule);
     }
-  }, [courseData, activeModuleId]);
+  }, [courseData]);
 
-  const contextValue = {
-    currentView,
-    setCurrentView,
-    selectedArticle,
-    setSelectedArticle,
-    modules,
-    activeModuleId,
-    setActiveModuleId,
-    linkFilter,
-    setLinkFilter,
+  const handleModuleToggle = (moduleId) => {
+    if (expandedModule === moduleId) {
+      setExpandedModule(null);
+      setSelectedModule(null);
+    } else {
+      setExpandedModule(moduleId);
+      const module = courseData.syllabus.modules.find(m => m._id === moduleId);
+      setSelectedModule(module);
+    }
   };
 
-  return (
-    <AppContext.Provider value={contextValue}>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {currentView === 'modules' ? <ModulesView /> : <ArticleView />}
-      </div>
-    </AppContext.Provider>
-  );
-}
-
-// ==================== MODULES VIEW COMPONENTS ====================
-function ModulesView() {
-  const { modules, activeModuleId, linkFilter, setLinkFilter } = useAppContext();
-  const activeModule = modules.find(m => m.id === activeModuleId);
-
-  // Filter chapters based on link filter
-  const filteredChapters = activeModule?.chapters?.filter(chapter => {
-    if (linkFilter === 'all') return true;
+  const handleContentTypeSelect = async (module, contentType) => {
+    setIsLoading(true);
     
-    if (!chapter.link || chapter.link.length === 0) return false;
+    // Set the content type immediately
+    setSelectedContentType(contentType);
     
-    return chapter.link.some(link => {
-      const fileType = getFileTypeFromUrl(link);
-      return linkFilter === fileType;
+    try {
+      const moduleData = await getModuleById(courseData.id, module._id);
+      setSelectedModule(moduleData);
+    } catch (error) {
+      console.error('Error fetching module:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
-  }) || [];
-
-  return (
-    <div className="flex h-screen">
-      <ModuleSidebar />
-      <div className="flex-1 p-8 overflow-y-auto bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-sm text-gray-500 dark:text-gray-400 mb-2">MODULE {modules.findIndex(m => m.id === activeModuleId) + 1}</h1>
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white">
-                {activeModule?.moduleTitle || 'Select a Module'}
-              </h2>
-            </div>
-            
-            {/* Filter Dropdown */}
-            <div className="relative">
-              <select
-                value={linkFilter}
-                onChange={(e) => setLinkFilter(e.target.value)}
-                className="appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-8 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-              >
-                <option value="all">All Chapters</option>
-                <option value="pdf">PDF Resources</option>
-                <option value="video">Video Resources</option>
-                <option value="other">Other Resources</option>
-              </select>
-              <Filter className="w-4 h-4 absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-          
-          {/* Filter indicator */}
-          {linkFilter !== 'all' && (
-            <div className="mb-4 flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-              <Filter className="w-4 h-4" />
-              <span>Showing chapters with {linkFilter} resources ({filteredChapters.length} results)</span>
-              <button
-                onClick={() => setLinkFilter('all')}
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 underline"
-              >
-                Clear filter
-              </button>
-            </div>
-          )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredChapters.length > 0 ? (
-                filteredChapters.map((chapter) => (
-                    <ChapterCard key={chapter.id} chapter={chapter} />
-                ))
-            ) : linkFilter === 'all' ? (
-                <div className="col-span-full text-center py-10 text-gray-500 dark:text-gray-400">
-                    <Book className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-                    <h3 className="text-lg font-semibold">No Chapters Available</h3>
-                    <p className="text-sm">This module doesn't have any chapters yet.</p>
-                </div>
-            ) : (
-                <div className="col-span-full text-center py-10 text-gray-500 dark:text-gray-400">
-                    <Filter className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-                    <h3 className="text-lg font-semibold">No Chapters Found</h3>
-                    <p className="text-sm">No chapters have {linkFilter} resources.</p>
-                </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ModuleSidebar() {
-  const { modules, activeModuleId, setActiveModuleId } = useAppContext();
-
-  return (
-    <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-600 p-6">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">MODULES</h2>
-      <nav className="space-y-2">
-        {modules.map((module, index) => (
-          <button
-            key={module.id}
-            onClick={() => setActiveModuleId(module.id)}
-            className={`w-full text-left p-3 rounded-lg transition-colors ${
-              module.id === activeModuleId
-                ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium' 
-                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <span className="text-sm font-medium text-gray-400 dark:text-gray-500 mr-3">{index + 1}.</span>
-            {module.name}
-          </button>
-        ))}
-      </nav>
-    </div>
-  );
-}
-
-function ChapterCard({ chapter }) {
-  const { setCurrentView, setSelectedArticle } = useAppContext();
-
-  const handleChapterClick = () => {
-    if (chapter.article) {
-      setSelectedArticle(chapter.article);
-      setCurrentView('article');
-    }
   };
 
-  const chapterLinks = chapter.link || [];
-
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-lg border border-gray-200 dark:border-gray-600 overflow-hidden hover:shadow-md dark:hover:shadow-xl transition-shadow group">
-      <div 
-        onClick={chapter.article ? handleChapterClick : undefined} 
-        className={chapter.article ? "cursor-pointer" : ""}
-      >
-        <div className={`${chapter.color || 'bg-gray-300 dark:bg-gray-600'} h-48 flex items-center justify-center relative`}>
-          <div className="w-16 h-16 bg-white/20 dark:bg-white/30 rounded-lg flex items-center justify-center">
-            <Book className="w-8 h-8 text-white" />
-          </div>
-          
-          {/* Links indicator overlay */}
-          {chapterLinks.length > 0 && (
-            <div className="absolute top-3 right-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-              {chapterLinks.length} resource{chapterLinks.length !== 1 ? 's' : ''}
-            </div>
-          )}
+  const renderContentItems = () => {
+    if (!selectedModule || !selectedModule[selectedContentType]) {
+      return (
+        <div className="text-center py-12 text-gray-500">
+          <div className="text-lg mb-2">No {contentTypes[selectedContentType]?.label.toLowerCase()} available</div>
+          <div className="text-sm">Check back later for new content</div>
         </div>
-        
-        <div className="p-6">
-          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">{chapter.title}</h3>
-          <p className="text-gray-700 dark:text-gray-300 text-sm mb-4 line-clamp-3 h-16">{chapter.description}</p>
-          
-          {/* Links section */}
-          {chapterLinks.length > 0 && (
-            <div className="mb-4">
-              <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">RESOURCES</h4>
-              <div className="flex flex-wrap gap-2">
-                {chapterLinks.map((link, index) => (
-                  <StudentLinkItem key={index} link={link} index={index} />
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {/* Article access button */}
-          <button 
-            onClick={handleChapterClick}
-            className={`w-full text-sm font-medium flex items-center justify-center py-2 rounded-lg border transition-colors ${
-              chapter.article 
-                ? 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20' 
-                : 'text-gray-400 dark:text-gray-500 cursor-not-allowed border-gray-200 dark:border-gray-600'
-            }`}
-            disabled={!chapter.article}
-          >
-            {chapter.article ? (
-              <>
-                READ ARTICLE
-                <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
-              </>
-            ) : (
-              'NO ARTICLE AVAILABLE'
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ==================== ARTICLE VIEW (READ ONLY) ====================
-function ArticleView() {
-  const { setCurrentView, selectedArticle } = useAppContext();
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const contentRef = useRef(null);
-
-  useEffect(() => {
-    const calculateProgress = () => {
-      if (contentRef.current) {
-        const element = contentRef.current;
-        const scrollTop = element.scrollTop;
-        const scrollHeight = element.scrollHeight - element.clientHeight;
-        const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
-        setScrollProgress(Math.min(100, Math.max(0, progress)));
-      }
-    };
-    const element = contentRef.current;
-    if (element) {
-      element.addEventListener('scroll', calculateProgress);
-      calculateProgress();
-      return () => element.removeEventListener('scroll', calculateProgress);
+      );
     }
-  }, [selectedArticle]);
 
-  if (!selectedArticle) {
+    const items = selectedModule[selectedContentType];
+    
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
-        <p className="text-gray-500 dark:text-gray-400">No article selected or something went wrong.</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {items.map((item) => (
+          <StudentContentCard 
+            key={item._id} 
+            item={item} 
+            contentType={selectedContentType}
+            formatFileSize={formatFileSize}
+            formatDate={formatDate}
+          />
+        ))}
       </div>
     );
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
-      <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-600 z-40">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={() => setCurrentView('modules')}
-              className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5 mr-2" />
-              Back to Modules
-            </button>
-          </div>
-          <div className="flex items-center space-x-4">
-             <span className="text-xs text-gray-500 dark:text-gray-400">{Math.round(scrollProgress)}% READ</span>
-            <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-1">
+    <div className="flex h-screen bg-gray-50 mt-4">
+      {/* Left Sidebar - Module Accordion */}
+      <div className="w-80 bg-white shadow-lg border-r">
+        <div className="p-6 border-b">
+          <h2 className="text-xl font-semibold text-gray-800">Course Materials</h2>
+          <p className="text-sm text-gray-600 mt-1">{courseData?.title}</p>
+        </div>
+        
+        <div className="overflow-y-auto h-full pb-20">
+          {courseData?.syllabus?.modules?.map((module) => (
+            <div key={module._id} className="border-b">
+              {/* Module Header */}
               <div 
-                className="bg-blue-600 dark:bg-blue-500 h-1 rounded-full transition-all duration-150"
-                style={{ width: `${scrollProgress}%` }}
-              />
+                onClick={() => handleModuleToggle(module._id)}
+                className={`p-4 cursor-pointer transition-colors hover:bg-gray-50 ${
+                  expandedModule === module._id ? 'bg-blue-50' : ''
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900 mb-1">
+                      Module {module.moduleNumber}: {module.moduleTitle}
+                    </h3>
+                    <p className="text-sm text-gray-600 line-clamp-2">
+                      {module.description}
+                    </p>
+                  </div>
+                  <div className="ml-2">
+                    {expandedModule === module._id ? (
+                      <ChevronDown size={20} className="text-blue-600" />
+                    ) : (
+                      <ChevronRight size={20} className="text-gray-400" />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Module Content - Accordion Panel */}
+              {expandedModule === module._id && (
+                <div className="bg-gray-50 px-4 pb-4">
+                  <div className="space-y-2">
+                    {Object.entries(contentTypes).map(([key, config]) => {
+                      const Icon = config.icon;
+                      const count = module[config.countKey] || 0;
+                      
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => handleContentTypeSelect(module, key)}
+                          className={`w-full flex items-center justify-between p-3 rounded-md text-sm transition-colors ${
+                            selectedModule?._id === module._id && selectedContentType === key
+                              ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                              : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <Icon size={16} />
+                            <span>{config.label}</span>
+                          </div>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            selectedModule?._id === module._id && selectedContentType === key
+                              ? 'bg-blue-200 text-blue-800'
+                              : 'bg-gray-200 text-gray-600'
+                          }`}>
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Right Content Area */}
+      <div className="flex-1 flex flex-col">
+        {selectedModule ? (
+          <>
+            {/* Header */}
+            <div className="bg-white shadow-sm border-b p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-xl font-semibold text-gray-900">
+                    Module {selectedModule.moduleNumber}: {selectedModule.moduleTitle}
+                  </h1>
+                  <p className="text-gray-600">
+                    {contentTypes[selectedContentType]?.label}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-3 text-sm text-gray-600">
+                  <div className="flex items-center space-x-1">
+                    <BookOpen size={16} />
+                    <span>Learning Materials</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Content Grid */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {isLoading ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+              ) : (
+                renderContentItems()
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center flex items-center justify-center flex-col">
+              <div className="text-gray-400 mb-4">
+                <BookOpen size={64} />
+              </div>
+              <h2 className="text-xl font-medium text-gray-600">Select a Module</h2>
+              <p className="text-gray-500 mt-2">Choose a module from the left to view learning materials</p>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div 
-        ref={contentRef}
-        className="max-w-4xl mx-auto px-4 py-8 overflow-y-auto"
-        style={{ maxHeight: 'calc(100vh - 120px)' }}
-      >
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-          {selectedArticle.title}
-        </h1>
-        <div className="mb-8">
-          <img 
-            src={selectedArticle.image?.imageUrl || 'https://placehold.co/800x400/e2e8f0/e2e8f0'} 
-            alt="Article" 
-            className="w-full h-96 object-cover rounded-lg shadow-sm dark:shadow-lg"
-          />
-          <div className="mt-4 text-sm text-gray-500 dark:text-gray-400 text-center">
-            <span>{new Date(selectedArticle.date).toLocaleTimeString()} • {new Date(selectedArticle.date).toLocaleDateString()}</span>
-            <span className="ml-8">BY {selectedArticle.author}</span>
-          </div>
-        </div>
-        <div className="max-w-3xl mx-auto">
-          <ReadOnlyContentRenderer article={selectedArticle} />
-        </div>
+        )}
       </div>
     </div>
   );
-}
+};
 
-// ==================== READ-ONLY CONTENT RENDERER ====================
-function ReadOnlyContentRenderer({ article }) {
-  const [blocks, setBlocks] = useState([]);
-
-  useEffect(() => {
-    if (article?.content) {
-      const paragraphs = article.content.split('\n\n').filter(p => p.trim());
-      const initialBlocks = paragraphs.map((content, index) => ({
-        id: `block-${article.id}-${index}`,
-        type: BLOCK_TYPES.PARAGRAPH, 
-        content: content.trim(),
-      }));
-      setBlocks(initialBlocks);
-    }
-  }, [article]);
-
-  return (
-    <div className="prose prose-gray dark:prose-invert lg:prose-xl max-w-none">
-      {blocks.map((block) => (
-        <BlockComponent key={block.id} block={block} />
-      ))}
-    </div>
-  );
-}
-
-function BlockComponent({ block }) {
-  const renderBlock = () => {
-    const contentHtml = { __html: block.content };
-
-    switch (block.type) {
-      case BLOCK_TYPES.HEADING_1: 
-        return <h1 className="text-4xl font-bold py-3 text-gray-900 dark:text-white" dangerouslySetInnerHTML={contentHtml} />;
-      case BLOCK_TYPES.HEADING_2: 
-        return <h2 className="text-3xl font-bold py-3 text-gray-900 dark:text-white" dangerouslySetInnerHTML={contentHtml} />;
-      case BLOCK_TYPES.HEADING_3: 
-        return <h3 className="text-2xl font-bold py-2 text-gray-900 dark:text-white" dangerouslySetInnerHTML={contentHtml} />;
-      case BLOCK_TYPES.QUOTE: 
-        return <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-6 py-2 italic text-lg text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded-r-lg" dangerouslySetInnerHTML={contentHtml} />;
-      case BLOCK_TYPES.CODE: 
-        return <pre className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto border border-gray-200 dark:border-gray-600"><code className="text-gray-800 dark:text-gray-200">{block.content}</code></pre>;
-      case BLOCK_TYPES.BULLETED_LIST: 
-        return <li className="py-1 text-gray-800 dark:text-gray-200" dangerouslySetInnerHTML={contentHtml}></li>;
-      case BLOCK_TYPES.NUMBERED_LIST: 
-        return <li className="py-1 text-gray-800 dark:text-gray-200" dangerouslySetInnerHTML={contentHtml}></li>;
-      case BLOCK_TYPES.IMAGE: 
-        return <div className="py-4"><img src={block.content || '/api/placeholder/600/300'} alt="Content" className="w-full h-auto rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm dark:shadow-lg" /></div>;
-      case BLOCK_TYPES.VIDEO: 
-        return <div className="py-4"><video src={block.content} controls className="w-full h-auto rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm dark:shadow-lg" /></div>;
-      default: 
-        return <p className="py-2 text-gray-800 dark:text-gray-200 leading-relaxed" dangerouslySetInnerHTML={contentHtml} />;
+// Student Content Card Component - View Only
+const StudentContentCard = ({ item, contentType, formatFileSize, formatDate }) => {
+  const getFileIcon = () => {
+    switch (contentType) {
+      case 'pdfs':
+        return <FileText className="text-red-500" size={32} />;
+      case 'ppts':
+        return <Presentation className="text-orange-500" size={32} />;
+      case 'videos':
+        return <Video className="text-blue-500" size={32} />;
+      case 'links':
+        return <Link className="text-green-500" size={32} />;
+      default:
+        return <FileText className="text-gray-500" size={32} />;
     }
   };
 
-  return <div className="my-2">{renderBlock()}</div>;
-}
+  const handleAccessContent = () => {
+    if (contentType === 'links') {
+      window.open(item.url || item.link, '_blank');
+    } else {
+      window.open(item.fileUrl || item.videoUrl, '_blank');
+    }
+  };
+
+  const getAccessButtonText = () => {
+    switch (contentType) {
+      case 'videos':
+        return 'Watch Video';
+      case 'links':
+        return 'Open Link';
+      case 'pdfs':
+        return 'View PDF';
+      case 'ppts':
+        return 'View Presentation';
+      default:
+        return 'View';
+    }
+  };
+
+  const getAccessIcon = () => {
+    switch (contentType) {
+      case 'videos':
+        return <Play size={16} />;
+      case 'links':
+        return <ExternalLink size={16} />;
+      default:
+        return <Eye size={16} />;
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow border border-gray-200">
+      {/* Thumbnail */}
+      <div className="h-40 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        {item.thumbnail?.thumbnailUrl ? (
+          <img 
+            src={item.thumbnail.thumbnailUrl} 
+            alt={item.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="text-gray-400">
+            {getFileIcon()}
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+          {item.name || item.title}
+        </h3>
+        
+        {(item.description || item.content) && (
+          <p className="text-sm text-gray-600 mb-3 line-clamp-3">
+            {item.description || item.content}
+          </p>
+        )}
+
+        {/* Show URL for links */}
+        {contentType === 'links' && (item.url || item.link) && (
+          <div className="mb-3 p-2 bg-gray-50 rounded">
+            <p className="text-xs text-blue-600 truncate" title={item.url || item.link}>
+              <ExternalLink size={12} className="inline mr-1" />
+              {item.url || item.link}
+            </p>
+          </div>
+        )}
+
+        {/* File Info */}
+        <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
+          <div className="flex items-center space-x-3">
+            {item.fileSize && (
+              <span className="bg-gray-100 px-2 py-1 rounded">
+                {formatFileSize(item.fileSize)}
+              </span>
+            )}
+            {item.createDate && (
+              <span>Added {formatDate(item.createDate)}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Access Button */}
+        <button
+          onClick={handleAccessContent}
+          className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+        >
+          {getAccessIcon()}
+          <span>{getAccessButtonText()}</span>
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export default StudentContentSection;
