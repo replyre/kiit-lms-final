@@ -13,8 +13,6 @@ import {
   Clock,
   Layout,
   Activity,
-  CheckCircle,
-  Monitor,
   Home,
 } from "lucide-react";
 import { useMemo } from "react";

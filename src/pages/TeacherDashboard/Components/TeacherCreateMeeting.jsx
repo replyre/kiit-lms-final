@@ -5,7 +5,17 @@ import { useMeeting } from '../../../context/MeetingContext';
 
 export default function TeacherCreateMeeting() {
   // Get all meeting-related state and functions from the context
-  const { meetings, loading, error, createMeeting, updateMeeting, deleteMeeting } = useMeeting();
+  const { 
+    meetings, 
+    userCourses, 
+    loading, 
+    error, 
+    createMeeting, 
+    updateMeeting, 
+    deleteMeeting,
+    getCourseNameById,
+    getCourseCodeById 
+  } = useMeeting();
   const { user } = useAuth();
 
   const [showModal, setShowModal] = useState(false);
@@ -18,7 +28,7 @@ export default function TeacherCreateMeeting() {
     instructor: '',
     roomNumber: '',
     color: '#4285F3',
-    courseId: 'cs1091',
+    courseId: '',
     attendees: [],
   });
   const [attendeeInput, setAttendeeInput] = useState('');
@@ -53,10 +63,10 @@ export default function TeacherCreateMeeting() {
       description: '',
       startTime: '',
       endTime: '',
-      instructor: user.name,
+      instructor: user?.name || '',
       roomNumber: '',
       color: '#4285F3',
-      courseId: 'cs1091',
+      courseId: userCourses.length > 0 ? userCourses[0]._id : '',
       attendees: [],
     });
     setCurrentMeeting(null);
@@ -72,10 +82,10 @@ export default function TeacherCreateMeeting() {
         description: meeting.description || '',
         startTime: formatDate(meeting.start),
         endTime: formatDate(meeting.end),
-        instructor: meeting.instructor || user.name,
+        instructor: meeting.instructor || user?.name || '',
         roomNumber: meeting.roomNumber || '',
         color: meeting.color || '#4285F3',
-        courseId: meeting.courseId || 'cs1091',
+        courseId: meeting.courseId || (userCourses.length > 0 ? userCourses[0]._id : ''),
         attendees: meeting.attendees || [],
       });
     } else {
@@ -87,8 +97,21 @@ export default function TeacherCreateMeeting() {
   // --- CONTEXT API HANDLERS ---
   
   const handleSubmit = async () => {
+    // Basic validation
+    if (!formData.subject.trim()) {
+      alert('Please enter a subject for the meeting');
+      return;
+    }
+    
+    if (!formData.courseId) {
+      alert('Please select a course');
+      return;
+    }
 
-
+    if (!currentMeeting && (!formData.startTime || !formData.endTime)) {
+      alert('Please select start and end times');
+      return;
+    }
 
     if (currentMeeting) {
       // Logic for updating
@@ -97,7 +120,7 @@ export default function TeacherCreateMeeting() {
         description: formData.description,
         roomNumber: formData.roomNumber,
         color: formData.color,
-        courseId: formData.courseId,
+        courseId: formData.courseId, // This is the MongoDB _id
       };
       const success = await updateMeeting(currentMeeting._id, updateData);
       if (success) setShowModal(false);
@@ -105,7 +128,8 @@ export default function TeacherCreateMeeting() {
       // Logic for creating
       const meetingData = {
         ...formData,
-        instructor: user.name,
+        instructor: user?.name || '',
+        courseId: formData.courseId, // This is the MongoDB _id
       };
       const success = await createMeeting(meetingData);
       if (success) setShowModal(false);
@@ -148,6 +172,7 @@ export default function TeacherCreateMeeting() {
           <button
             onClick={() => openModal()}
             className="bg-primary/80 text-white px-4 py-2 rounded-md flex items-center hover:bg-primary"
+            disabled={userCourses.length === 0}
           >
             <Plus className="w-4 h-4 mr-1" /> New Meeting
           </button>
@@ -156,6 +181,12 @@ export default function TeacherCreateMeeting() {
         {error && (
           <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded">
             <p>{error}</p>
+          </div>
+        )}
+
+        {userCourses.length === 0 && !loading && (
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded">
+            <p>No courses available. You need to be assigned to courses before creating meetings.</p>
           </div>
         )}
 
@@ -201,7 +232,7 @@ export default function TeacherCreateMeeting() {
                     <span className="font-medium">Room:</span> {meeting.roomNumber || 'Not assigned'}
                   </div>
                   <div className="text-gray-600">
-                    <span className="font-medium">Course ID:</span> {meeting.courseId || 'Not assigned'}
+                    <span className="font-medium">Course:</span> {getCourseNameById(meeting.courseId)} ({getCourseCodeById(meeting.courseId)})
                   </div>
                   <div className="text-gray-600">
                     <span className="font-medium">Participants:</span> {meeting.attendees ? meeting.attendees.length : 0}
@@ -239,41 +270,99 @@ export default function TeacherCreateMeeting() {
             <div className="space-y-4">
               {/* Form fields... */}
               <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                <input type="text" id="subject" name="subject" value={formData.subject} onChange={handleInputChange} className="w-full p-2 border border-gray-300 rounded-md" />
+                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">Subject *</label>
+                <input 
+                  type="text" 
+                  id="subject" 
+                  name="subject" 
+                  value={formData.subject} 
+                  onChange={handleInputChange} 
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary" 
+                  required
+                />
               </div>
+
+              <div>
+                <label htmlFor="courseId" className="block text-sm font-medium text-gray-700 mb-1">Course *</label>
+                <select 
+                  id="courseId" 
+                  name="courseId" 
+                  value={formData.courseId} 
+                  onChange={handleInputChange} 
+                  className="w-full p-2 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-primary focus:border-primary"
+                  required
+                >
+                  <option value="">Select a course</option>
+                  {userCourses.map((course) => (
+                    <option key={course._id} value={course._id}>
+                      {course.title} ({course.courseCode})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea id="description" name="description" value={formData.description} onChange={handleInputChange} rows={3} className="w-full p-2 border border-gray-300 rounded-md" />
+                <textarea 
+                  id="description" 
+                  name="description" 
+                  value={formData.description} 
+                  onChange={handleInputChange} 
+                  rows={3} 
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary" 
+                />
               </div>
               
               {!currentMeeting && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
-                    <input type="datetime-local" id="startTime" name="startTime" value={formData.startTime} onChange={handleInputChange} className="w-full p-2 border border-gray-300 rounded-md" />
+                    <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-1">Start Time *</label>
+                    <input 
+                      type="datetime-local" 
+                      id="startTime" 
+                      name="startTime" 
+                      value={formData.startTime} 
+                      onChange={handleInputChange} 
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary" 
+                      required
+                    />
                   </div>
                   <div>
-                    <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
-                    <input type="datetime-local" id="endTime" name="endTime" value={formData.endTime} onChange={handleInputChange} className="w-full p-2 border border-gray-300 rounded-md" />
+                    <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-1">End Time *</label>
+                    <input 
+                      type="datetime-local" 
+                      id="endTime" 
+                      name="endTime" 
+                      value={formData.endTime} 
+                      onChange={handleInputChange} 
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary" 
+                      required
+                    />
                   </div>
                 </div>
               )}
               
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="roomNumber" className="block text-sm font-medium text-gray-700 mb-1">Room Number</label>
-                  <input type="text" id="roomNumber" name="roomNumber" value={formData.roomNumber} onChange={handleInputChange} className="w-full p-2 border border-gray-300 rounded-md" />
-                </div>
-                <div>
-                  <label htmlFor="courseId" className="block text-sm font-medium text-gray-700 mb-1">Course ID</label>
-                  <input type="text" id="courseId" name="courseId" value={formData.courseId} onChange={handleInputChange} className="w-full p-2 border border-gray-300 rounded-md" />
-                </div>
+              <div>
+                <label htmlFor="roomNumber" className="block text-sm font-medium text-gray-700 mb-1">Room Number</label>
+                <input 
+                  type="text" 
+                  id="roomNumber" 
+                  name="roomNumber" 
+                  value={formData.roomNumber} 
+                  onChange={handleInputChange} 
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary" 
+                />
               </div>
 
               <div>
                 <label htmlFor="color" className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                <select id="color" name="color" value={formData.color} onChange={handleInputChange} className="w-full p-2 border border-gray-300 rounded-md bg-white">
+                <select 
+                  id="color" 
+                  name="color" 
+                  value={formData.color} 
+                  onChange={handleInputChange} 
+                  className="w-full p-2 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-primary focus:border-primary"
+                >
                   <option value="#4285F3">Blue</option>
                   <option value="#4CAF50">Green</option>
                   <option value="#FBBC05">Yellow</option>
@@ -287,15 +376,31 @@ export default function TeacherCreateMeeting() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Attendees</label>
                   <div className="flex">
-                    <input type="email" value={attendeeInput} onChange={(e) => setAttendeeInput(e.target.value)} placeholder="Email address" className="flex-1 p-2 border border-gray-300 rounded-l-md" />
-                    <button type="button" onClick={handleAddAttendee} className="px-4 py-2 bg-primary/80 text-white rounded-r-md hover:bg-primary">Add</button>
+                    <input 
+                      type="email" 
+                      value={attendeeInput} 
+                      onChange={(e) => setAttendeeInput(e.target.value)} 
+                      placeholder="Email address" 
+                      className="flex-1 p-2 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-primary focus:border-primary" 
+                    />
+                    <button 
+                      type="button" 
+                      onClick={handleAddAttendee} 
+                      className="px-4 py-2 bg-primary/80 text-white rounded-r-md hover:bg-primary"
+                    >
+                      Add
+                    </button>
                   </div>
                   {formData.attendees.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {formData.attendees.map((email, idx) => (
                         <span key={idx} className="inline-flex items-center bg-green-100 text-primary text-xs rounded-full px-3 py-1">
                           {email}
-                          <button type="button" onClick={() => handleRemoveAttendee(email)} className="ml-1 text-primary/80 hover:text-primary">
+                          <button 
+                            type="button" 
+                            onClick={() => handleRemoveAttendee(email)} 
+                            className="ml-1 text-primary/80 hover:text-primary"
+                          >
                             <X className="w-3 h-3" />
                           </button>
                         </span>
@@ -306,8 +411,18 @@ export default function TeacherCreateMeeting() {
               )}
 
               <div className="flex justify-end space-x-3 pt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">Cancel</button>
-                <button type="button" onClick={handleSubmit} className="px-4 py-2 bg-primary/80 text-white rounded-md hover:bg-primary">
+                <button 
+                  type="button" 
+                  onClick={() => setShowModal(false)} 
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleSubmit} 
+                  className="px-4 py-2 bg-primary/80 text-white rounded-md hover:bg-primary"
+                >
                   {currentMeeting ? 'Update' : 'Create'}
                 </button>
               </div>

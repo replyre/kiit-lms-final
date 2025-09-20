@@ -3,7 +3,6 @@ import { FileText, Video, Presentation, Plus, Edit, Trash2, Upload, Eye, Downloa
 import { useCourse } from '../../../../../context/CourseContext';
 import { 
   getCourseSyllabus, 
-  getModuleById, 
   addModuleContent, 
   updateContentItem, 
   deleteContentItem 
@@ -45,20 +44,24 @@ const ContentSection = () => {
     }
   };
 
-  // Fixed function - properly set the content type first, then fetch module data
-  const handleContentTypeSelect = async (module, contentType) => {
-    setIsLoading(true);
-    
-    // Set the content type immediately
+  // Fixed function - work directly with courseData instead of API calls
+  const handleContentTypeSelect = (module, contentType) => {
     setSelectedContentType(contentType);
-    
+    setSelectedModule(module);
+  };
+
+  const refreshCourseData = async () => {
     try {
-      const moduleData = await getModuleById(courseData.id, module._id);
-      setSelectedModule(moduleData);
+      const updatedCourseData = await getCourseSyllabus({ courseID: courseData.id });
+      setCourseData({ ...courseData, syllabus: updatedCourseData });
+      
+      // Update selected module with fresh data
+      if (selectedModule) {
+        const updatedModule = updatedCourseData.modules.find(m => m._id === selectedModule._id);
+        setSelectedModule(updatedModule);
+      }
     } catch (error) {
-      console.error('Error fetching module:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Error refreshing course data:', error);
     }
   };
 
@@ -76,7 +79,8 @@ const ContentSection = () => {
       
       // For links, add the URL
       if (selectedContentType === 'links' && contentData.url) {
-        formData.append('url', contentData.url);
+        formData.append('fileUrl', contentData.url);
+        formData.append('linkType', "external");
       }
       
       if (file) {
@@ -87,15 +91,10 @@ const ContentSection = () => {
         formData.append('thumbnail', thumbnail);
       }
 
-      const response = await addModuleContent(courseData.id, selectedModule._id, formData);
+      await addModuleContent(courseData.id, selectedModule._id, formData);
       
-      // Refresh the entire course data to update counts and content
-      const updatedCourseData = await getCourseSyllabus({ courseID: courseData.id });
-      setCourseData({ ...courseData, syllabus: updatedCourseData });
-      
-      // Update the selected module with fresh data
-      const updatedModule = await getModuleById(courseData.id, selectedModule._id);
-      setSelectedModule(updatedModule);
+      // Refresh course data to update counts and content
+      await refreshCourseData();
       
       setShowAddModal(false);
     } catch (error) {
@@ -112,13 +111,8 @@ const ContentSection = () => {
     try {
       await deleteContentItem(courseData.id, selectedModule._id, contentId);
       
-      // Refresh the entire course data to update counts and content
-      const updatedCourseData = await getCourseSyllabus({ courseID: courseData.id });
-      setCourseData({ ...courseData, syllabus: updatedCourseData });
-      
-      // Update the selected module with fresh data
-      const updatedModule = await getModuleById(courseData.id, selectedModule._id);
-      setSelectedModule(updatedModule);
+      // Refresh course data to update counts and content
+      await refreshCourseData();
     } catch (error) {
       console.error('Error deleting content:', error);
     } finally {
@@ -150,13 +144,8 @@ const ContentSection = () => {
 
       await updateContentItem(courseData.id, selectedModule._id, editingItem._id, formData);
       
-      // Refresh the entire course data to update counts and content
-      const updatedCourseData = await getCourseSyllabus({ courseID: courseData.id });
-      setCourseData({ ...courseData, syllabus: updatedCourseData });
-      
-      // Update the selected module with fresh data
-      const updatedModule = await getModuleById(courseData.id, selectedModule._id);
-      setSelectedModule(updatedModule);
+      // Refresh course data to update counts and content
+      await refreshCourseData();
       
       setEditingItem(null);
     } catch (error) {
@@ -183,7 +172,7 @@ const ContentSection = () => {
   };
 
   const renderContentItems = () => {
-    if (!selectedModule || !selectedModule[selectedContentType]) {
+    if (!selectedModule || !selectedModule[selectedContentType] || selectedModule[selectedContentType].length === 0) {
       return (
         <div className="text-center py-12 text-gray-500">
           <div className="text-lg mb-2">No {contentTypes[selectedContentType]?.label.toLowerCase()} found</div>
@@ -300,7 +289,7 @@ const ContentSection = () => {
                   <h1 className="text-xl font-semibold text-gray-900">
                     Module {selectedModule.moduleNumber}: {selectedModule.moduleTitle}
                   </h1>
-                  <p className="text-gray-600 ">
+                  <p className="text-gray-600">
                     Viewing {contentTypes[selectedContentType]?.label}
                   </p>
                 </div>
@@ -383,7 +372,25 @@ const ContentCard = ({ item, contentType, onDelete, onEdit, formatFileSize, form
     if (contentType === 'links') {
       window.open(item.url || item.link, '_blank');
     } else {
-      window.open(item.fileUrl || item.videoUrl, '_blank');
+      // For files (pdfs, videos, ppts), open the file URL
+      const fileUrl = item.fileUrl || item.videoUrl || item.url;
+      if (fileUrl) {
+        window.open(fileUrl, '_blank');
+      }
+    }
+  };
+
+  const handleDownload = () => {
+    const fileUrl = item.fileUrl || item.videoUrl || item.url;
+    const fileName = item.name || item.title || 'download';
+    
+    if (fileUrl) {
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
@@ -444,6 +451,18 @@ const ContentCard = ({ item, contentType, onDelete, onEdit, formatFileSize, form
             >
               {contentType === 'links' ? <ExternalLink size={16} /> : <Eye size={16} />}
             </button>
+            
+            {/* Download button for files only */}
+            {contentType !== 'links' && (
+              <button
+                onClick={handleDownload}
+                className="text-purple-600 hover:text-purple-800 transition-colors"
+                title="Download"
+              >
+                <Download size={16} />
+              </button>
+            )}
+            
             <button
               onClick={onEdit}
               className="text-green-600 hover:text-green-800 transition-colors"
@@ -486,6 +505,7 @@ const AddContentModal = ({ contentType, onClose, onAdd, isLoading }) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
     if (contentType === 'links' && !formData.url.trim()) return;
+    if (contentType !== 'links' && !file) return;
     onAdd(formData, file, thumbnail);
   };
 
@@ -560,7 +580,7 @@ const AddContentModal = ({ contentType, onClose, onAdd, isLoading }) => {
           {isFileRequired() && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                File {isFileRequired() ? '*' : ''}
+                File *
               </label>
               <input
                 type="file"
@@ -594,7 +614,7 @@ const AddContentModal = ({ contentType, onClose, onAdd, isLoading }) => {
             </button>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || (!formData.name.trim()) || (contentType === 'links' && !formData.url.trim()) || (contentType !== 'links' && !file)}
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
               {isLoading ? 'Adding...' : 'Add'}
@@ -730,7 +750,7 @@ const EditContentModal = ({ item, contentType, onClose, onUpdate, isLoading }) =
             </button>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !formData.name.trim() || (contentType === 'links' && !formData.url.trim())}
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
               {isLoading ? 'Updating...' : 'Update'}

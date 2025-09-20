@@ -65,6 +65,7 @@ export const addModuleContent = async (courseID, moduleID, formData) => {
 export const updateContentItem = async (
   courseID,
   moduleID,
+  contentType,
   contentID,
   formData
 ) => {
@@ -75,7 +76,7 @@ export const updateContentItem = async (
     }
 
     const response = await api.put(
-      `/syllabus/course/${courseID}/syllabus/module/${moduleID}/content/${contentID}`,
+      `/syllabus/course/${courseID}/syllabus/module/${moduleID}/content/${contentType}/${contentID}`,
       formData,
       {
         headers: {
@@ -93,10 +94,10 @@ export const updateContentItem = async (
 };
 
 // Delete content item
-export const deleteContentItem = async (courseID, moduleID, contentID) => {
+export const deleteContentItem = async (courseID, moduleID, contentType, contentID) => {
   try {
     const response = await api.delete(
-      `/syllabus/course/${courseID}/syllabus/module/${moduleID}/content/${contentID}`
+      `/syllabus/course/${courseID}/syllabus/module/${moduleID}/content/${contentType}/${contentID}`
     );
     toast.success("Content deleted successfully!");
     return response.data;

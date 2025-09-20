@@ -19,22 +19,26 @@ export const MeetingProvider = ({ children }) => {
   // Fetch user's courses based on their role
   const fetchUserCourses = useCallback(async () => {
     console.log(user);
-    if (!user?._id || !user?.role) return;
+    if (!user?._id || !user?.role) return [];
     
     try {
-      let courses = [];
+      let coursesData = [];
       if (user.role === 'teacher') {
-        courses = await getAllCourses(); // Teacher gets all courses they teach
+        coursesData = await getAllCourses(); // Teacher gets all courses they teach
       } else if (user.role === 'student') {
-        courses = await getAllStudentCourses(); // Student gets enrolled courses
+        coursesData = await getAllStudentCourses(); // Student gets enrolled courses
       }
-      console.log(courses);
+      console.log('Courses data:', coursesData);
+      
+      // Extract the courses array from the response
+      // Based on the API response structure: { user: {...}, courses: [...] }
+      const courses = coursesData?.courses || [];
       setUserCourses(courses);
-      return courses;
+      return coursesData;
     } catch (err) {
       console.error('Error fetching user courses:', err);
       setError('Failed to fetch courses');
-      return [];
+      return { courses: [] };
     }
   }, [user?._id, user?.role]);
 
@@ -45,17 +49,19 @@ export const MeetingProvider = ({ children }) => {
     setLoading(true);
     try {
       // First, get user's courses
-      const courses = await fetchUserCourses();
+      const coursesData = await fetchUserCourses();
+      const courses = coursesData?.courses || coursesData || [];
+      
       if (courses.length === 0) {
         setMeetings([]);
         setLoading(false);
         return;
       }
 
-      // Get course IDs
-     
-      const courseIds = courses.courses.map(course => course._id);
-
+      // Get course IDs (MongoDB _id, not courseCode)
+      const courseIds = courses.map(course => course._id);
+      console.log("Course IDs (MongoDB _ids):", courseIds);
+      
       // Fetch all meetings
       const response = await fetch(API_URL);
       if (!response.ok) throw new Error('Failed to fetch meetings');
@@ -63,7 +69,7 @@ export const MeetingProvider = ({ children }) => {
       const allMeetings = await response.json();
       
       // Filter meetings based on courseIds
-      console.log(allMeetings)
+      console.log('All meetings:', allMeetings);
       const userMeetings = allMeetings.filter(meeting => 
         courseIds.includes(meeting.courseId)
       );
@@ -164,10 +170,22 @@ export const MeetingProvider = ({ children }) => {
   // Check if user can manage meetings (create/edit/delete)
   const canManageMeetings = user?.role === 'teacher';
 
+  // Helper function to get course name by MongoDB ID
+  const getCourseNameById = useCallback((courseId) => {
+    const course = userCourses.find(course => course._id === courseId);
+    return course ? course.title : 'Unknown Course';
+  }, [userCourses]);
+
+  // Helper function to get course code by MongoDB ID
+  const getCourseCodeById = useCallback((courseId) => {
+    const course = userCourses.find(course => course._id === courseId);
+    return course ? course.courseCode : 'Unknown';
+  }, [userCourses]);
+
   // 3. Define the value to be passed to consumers
   const value = {
     meetings,
-    userCourses,
+    userCourses, // Now properly exposed
     loading,
     error,
     fetchMeetings,
@@ -176,6 +194,8 @@ export const MeetingProvider = ({ children }) => {
     deleteMeeting,
     getMeetingsByCourse,
     canManageMeetings,
+    getCourseNameById, // Helper function
+    getCourseCodeById, // Helper function
   };
 
   return (
